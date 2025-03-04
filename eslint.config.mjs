@@ -40,6 +40,7 @@ export default tseslint.config(
       '@typescript-eslint/no-unsafe-assignment': 'off',
       '@typescript-eslint/await-thenable': 'off',
       '/no-useless-catch/': 'off',
+      '@typescript-eslint/no-misused-promises': 'off',
     },
   },
 );
