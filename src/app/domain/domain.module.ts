@@ -43,8 +43,8 @@ export const ALL_SERVICES = fs
     MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
   ],
 
-  controllers: [],
-  providers: [UsersService, JwtStrategy],
+  controllers: [AuthController],
+  providers: [UsersService, JwtStrategy, AuthService],
   exports: [UsersService],
 })
 export class DomainModule {}
