@@ -10,6 +10,7 @@ import { JwtStrategy } from '../auth/jwt.strategy';
 import { MongooseModule } from '@nestjs/mongoose';
 import { UsersService } from './services/user.service';
 import { User, UserSchema } from './schemas/user.schema';
+import { JwtAuthGuard } from '../auth/jwt.guard';
 
 export const ALL_SERVICES = fs
   .readdirSync(path.join(path.dirname(__filename), 'services'))
@@ -44,7 +45,7 @@ export const ALL_SERVICES = fs
   ],
 
   controllers: [AuthController],
-  providers: [UsersService, JwtStrategy, AuthService],
+  providers: [UsersService, JwtStrategy, JwtAuthGuard, AuthService],
   exports: [UsersService],
 })
 export class DomainModule {}

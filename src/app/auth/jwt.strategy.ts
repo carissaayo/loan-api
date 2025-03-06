@@ -1,23 +1,25 @@
-/* eslint-disable @typescript-eslint/no-misused-promises */
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
-import { UsersService } from '../domain/services/user.service';
 import { ConfigService } from '@nestjs/config';
 
+// const JWT_SECRET =
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
-  constructor(
-    private readonly userService: UsersService,
-    private readonly configService: ConfigService,
-  ) {
+  constructor(private readonly configService: ConfigService) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-      secretOrKeyProvider: async () => configService.get<string>('JWT_SECRET'),
+      secretOrKey: configService.get<string>('JWT_SECRET') || 'another_one',
     });
   }
 
   async validate(payload: any) {
+    if (!payload) {
+      throw new UnauthorizedException('Invalid token');
+    }
+
+    console.log('Validated JWT payload:', payload); // Debugging
+
     return { userId: payload.sub, email: payload.email, role: payload.role };
   }
 }
