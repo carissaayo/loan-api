@@ -25,13 +25,25 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('register')
-  async register(@Body() registerDto: RegisterDto) {
-    try {
-      return await this.authService.register(registerDto);
-    } catch (error) {
-      throw new BadRequestException(error.message);
-    }
+  async register(
+    @Body()
+    body: {
+      email: string;
+      password: string;
+      confirmPassword: string;
+      phone: string;
+      name: string;
+    },
+  ) {
+    return this.authService.register(
+      body.email,
+      body.password,
+      body.confirmPassword,
+      body.phone,
+      body.name,
+    );
   }
+
   @Post('login')
   async login(@Body() loginDto: LoginDto) {
     const token = await this.authService.login(loginDto);
@@ -53,4 +65,16 @@ export class AuthController {
       throw new BadRequestException(error.message);
     }
   }
+
+  // @UseGuards(JwtAuthGuard)
+  // @Post('send-otp')
+  // async sendOtp(@Body('phone') phone: string) {
+  //   return await this.authService.sendPhoneOtp(phone);
+  // }
+
+  // @UseGuards(JwtAuthGuard)
+  // @Post('verify-phone')
+  // async verifyPhone(@Body('OTP') otp: string) {
+  //   return await this.authService.verifyPhoneToken(otp);
+  // }
 }

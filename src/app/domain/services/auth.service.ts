@@ -15,56 +15,83 @@ import * as nodemailer from 'nodemailer';
 import { User, UserDocument } from '../schemas/user.schema';
 import { LoginDto, RegisterDto } from '../dto/auth.dto';
 import { ConfigService } from '@nestjs/config';
-
+import { FirebaseService } from './firebase.service';
 @Injectable()
 export class AuthService {
   constructor(
     @InjectModel(User.name) private readonly userModel: Model<UserDocument>,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
+    private readonly firebaseService: FirebaseService,
   ) {}
 
-  async register(registerDto: RegisterDto): Promise<User> {
-    const { name, email, password, confirmPassword, phone } = registerDto;
-    if (password !== confirmPassword) {
-      throw new ConflictException('Passwords do not match');
-    }
-    // Check if user already exists
+  async register(
+    email: string,
+    password: string,
+    confirmPassword: string,
+    phone: string,
+    name: string,
+  ) {
     const existingUser = await this.userModel.findOne({ email });
     if (existingUser) {
-      throw new ConflictException('Email already registered');
+      throw new ConflictException('User already exists');
+    }
+    if (password !== confirmPassword) {
+      throw new UnauthorizedException('Passwords do not match');
     }
 
-    // Hash password
+    // Hash password before storing in MongoDB
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Create new user
-    const user = new this.userModel({
-      name,
-      email,
-      password: hashedPassword,
-      phone,
-    });
+    try {
+      // Create Firebase user
+      const firebaseUser = await this.firebaseService.createFirebaseUser(
+        email,
+        password,
+        phone,
+      );
 
-    user.save();
-    // Generate a verification token
-    const verificationToken = this.jwtService.sign(
-      { email: user.email },
-      { secret: this.configService.get<string>('JWT_SECRET'), expiresIn: '1d' },
-    );
-
-    await this.sendVerificationEmail(user.email, verificationToken);
-
-    return user;
+      // Create User in MongoDB with Firebase UID
+      const user = new this.userModel({
+        email,
+        password: hashedPassword,
+        phone,
+        firebaseUid: firebaseUser.uid,
+        name,
+      });
+      await user.save();
+      const { role, isVerified, firebaseUid, _id } = user;
+      return {
+        message: 'User registered successfully',
+        user: {
+          email,
+          phone,
+          name,
+          firebaseUid,
+          isVerified,
+          role,
+          _id,
+        },
+      };
+    } catch (error) {
+      throw new InternalServerErrorException(error.message);
+    }
   }
 
   async login(loginDto: LoginDto) {
     const { email, password } = loginDto;
+    // Verify credentials with Firebase
+    const firebaseUser = await this.firebaseService.verifyUser(email);
+    if (!firebaseUser) {
+      throw new UnauthorizedException('No user found with the email');
+    }
 
-    // Find user by email
-    const user = await this.userModel.findOne({ email });
+    // Find user in MongoDB using Firebase UID
+    const user = await this.userModel.findOne({
+      firebaseUid: firebaseUser.uid,
+    });
     if (!user) {
-      throw new UnauthorizedException('Invalid credentials');
+      throw new UnauthorizedException('User not found');
     }
 
     // Compare passwords
@@ -72,15 +99,23 @@ export class AuthService {
     if (!isPasswordValid) {
       throw new UnauthorizedException('Invalid credentials');
     }
-    const accessToken = this.jwtService.sign({
+
+    // Generate JWT token
+    const payload = {
       sub: user._id,
       email: user.email,
       role: user.role,
-    });
-
-    const userDetails = { email, name: user.name, phone: user.phone };
-    // Generate JWT token
-    return { accessToken, userDetails };
+      phone: user.phone,
+    };
+    const acessToken = this.jwtService.sign(payload);
+    const userDetails = {
+      email: user.email,
+      phone: user.phone,
+      role: user.role,
+      firebaseUid: user.firebaseUid,
+      name: user.name,
+    };
+    return { acessToken, userDetails };
   }
 
   async sendVerificationEmail(email: string, token: string) {
@@ -156,4 +191,18 @@ export class AuthService {
       throw new BadRequestException('Invalid or expired token');
     }
   }
+
+  //   async sendPhoneOtp(phone: string): Promise<string> {
+  //     return await this.firebaseService.sendOtp(phone);
+  //   }
+
+  //   async verifyPhoneToken(otp: string): Promise<string> {
+  //     const decodedToken = await this.firebaseService.verifyIdToken(otp);
+
+  //     if (!decodedToken.phone) {
+  //       throw new BadRequestException('Phone number verification failed.');
+  //     }
+
+  //     return `Phone number ${decodedToken.phone} verified successfully!`;
+  //   }
 }

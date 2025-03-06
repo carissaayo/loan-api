@@ -29,6 +29,9 @@ export class User {
     default: 'User',
   })
   role: string;
+
+  @Prop({ unique: true })
+  firebaseUid: string;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
