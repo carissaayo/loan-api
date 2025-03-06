@@ -12,6 +12,8 @@ import { UsersService } from './services/user.service';
 import { User, UserSchema } from './schemas/user.schema';
 import { JwtAuthGuard } from '../auth/jwt.guard';
 import { FirebaseService } from './services/firebase.service';
+import { TwilioService } from './services/twillio.service';
+import { Twilio } from 'twilio';
 
 export const ALL_SERVICES = fs
   .readdirSync(path.join(path.dirname(__filename), 'services'))
@@ -52,7 +54,18 @@ export const ALL_SERVICES = fs
     JwtAuthGuard,
     AuthService,
     FirebaseService,
+    {
+      provide: 'TWILIO_CLIENT',
+      useFactory: (configService: ConfigService) => {
+        return new Twilio(
+          configService.get<string>('TWILIO_ACCOUNT_SID'),
+          configService.get<string>('TWILIO_AUTH_TOKEN'),
+        );
+      },
+      inject: [ConfigService],
+    },
+    TwilioService,
   ],
-  exports: [UsersService],
+  exports: [UsersService, TwilioService],
 })
 export class DomainModule {}

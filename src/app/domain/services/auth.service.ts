@@ -16,6 +16,7 @@ import { User, UserDocument } from '../schemas/user.schema';
 import { LoginDto, RegisterDto } from '../dto/auth.dto';
 import { ConfigService } from '@nestjs/config';
 import { FirebaseService } from './firebase.service';
+import { TwilioService } from './twillio.service';
 @Injectable()
 export class AuthService {
   constructor(
@@ -23,6 +24,7 @@ export class AuthService {
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
     private readonly firebaseService: FirebaseService,
+    private readonly twilioService: TwilioService,
   ) {}
 
   async register(
@@ -192,17 +194,11 @@ export class AuthService {
     }
   }
 
-  //   async sendPhoneOtp(phone: string): Promise<string> {
-  //     return await this.firebaseService.sendOtp(phone);
-  //   }
+  async sendOtp(phone: string): Promise<any> {
+    return await this.twilioService.sendOTP(phone);
+  }
 
-  //   async verifyPhoneToken(otp: string): Promise<string> {
-  //     const decodedToken = await this.firebaseService.verifyIdToken(otp);
-
-  //     if (!decodedToken.phone) {
-  //       throw new BadRequestException('Phone number verification failed.');
-  //     }
-
-  //     return `Phone number ${decodedToken.phone} verified successfully!`;
-  //   }
+  async verifyOTP(phone: string, code: string): Promise<any> {
+    return await this.twilioService.verifyOTP(phone, code);
+  }
 }

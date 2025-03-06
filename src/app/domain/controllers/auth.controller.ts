@@ -13,6 +13,7 @@ import {
 import { AuthService } from '../services/auth.service';
 import { LoginDto, RegisterDto } from '../dto/auth.dto';
 import { JwtAuthGuard } from 'src/app/auth/jwt.guard';
+import { TwilioService } from '../services/twillio.service';
 
 @Controller('auth')
 @UsePipes(
@@ -22,7 +23,10 @@ import { JwtAuthGuard } from 'src/app/auth/jwt.guard';
   }),
 )
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly twilioService: TwilioService,
+  ) {}
 
   @Post('register')
   async register(
@@ -66,15 +70,18 @@ export class AuthController {
     }
   }
 
-  // @UseGuards(JwtAuthGuard)
-  // @Post('send-otp')
-  // async sendOtp(@Body('phone') phone: string) {
-  //   return await this.authService.sendPhoneOtp(phone);
-  // }
+  @Post('send-otp')
+  async sendOtp(@Body('phoneNumber') phoneNumber: string) {
+    // const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    return this.twilioService.sendOTP(phoneNumber);
+  }
 
-  // @UseGuards(JwtAuthGuard)
-  // @Post('verify-phone')
-  // async verifyPhone(@Body('OTP') otp: string) {
-  //   return await this.authService.verifyPhoneToken(otp);
-  // }
+  @Post('verify-otp')
+  async verifyOtp(
+    @Body('phoneNumber') phoneNumber: string,
+    @Body('code') code: string,
+  ) {
+    // const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    return this.twilioService.verifyOTP(phoneNumber, code);
+  }
 }

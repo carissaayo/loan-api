@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import * as admin from 'firebase-admin';
 import { ConfigService } from '@nestjs/config';
-import axios from 'axios';
+
 @Injectable()
 export class FirebaseService {
   constructor(private configService: ConfigService) {
