@@ -14,6 +14,7 @@ import { AuthService } from '../services/auth.service';
 import { LoginDto, RegisterDto } from '../dto/auth.dto';
 import { JwtAuthGuard } from 'src/app/auth/jwt.guard';
 import { TwilioService } from '../services/twillio.service';
+import { Public } from '../middleware/public.decorator';
 
 @Controller('auth')
 @UsePipes(
@@ -28,6 +29,7 @@ export class AuthController {
     private readonly twilioService: TwilioService,
   ) {}
 
+  @Public()
   @Post('register')
   async register(
     @Body()
@@ -47,7 +49,7 @@ export class AuthController {
       body.name,
     );
   }
-
+  @Public()
   @Post('login')
   async login(@Body() loginDto: LoginDto) {
     const token = await this.authService.login(loginDto);
@@ -55,6 +57,7 @@ export class AuthController {
     return token;
   }
 
+  @Public()
   @Get('verify-email')
   async verifyEmail(@Query('token') token: string) {
     return await this.authService.verifyEmail(token);

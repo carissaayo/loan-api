@@ -17,16 +17,17 @@ import {
 export class LoanService {
   constructor(@InjectModel(Loan.name) private loanModel: Model<Loan>) {}
 
-  async requestLoan(
-    createLoanDto: CreateLoanDto,
-    userId: string,
-  ): Promise<Loan> {
+  async requestLoan(createLoanDto: CreateLoanDto, req: any): Promise<any> {
+    console.log(req.user);
+
     const loan = new this.loanModel({
       ...createLoanDto,
-      user: userId,
+      user: req.user,
       status: LoanStatus.PENDING,
     });
-    return loan.save();
+
+    loan.save();
+    return { message: 'Loan request has been made', loan };
   }
 
   async approveLoan(

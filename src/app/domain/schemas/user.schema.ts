@@ -26,9 +26,6 @@ export class User {
 
   @Prop({ required: true, enum: Role, default: Role.USER })
   role: Role;
-
-  //   @Prop({ unique: true })
-  //   firebaseUid: string;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

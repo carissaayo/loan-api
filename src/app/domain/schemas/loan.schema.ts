@@ -16,7 +16,7 @@ export type LoanDocument = Loan & Document;
 @Schema({ timestamps: true })
 export class Loan {
   @Prop({ required: true, type: Types.ObjectId, ref: 'User' })
-  user: Types.ObjectId;
+  userId: Types.ObjectId;
 
   @Prop({ required: true })
   amount: number;
@@ -24,7 +24,7 @@ export class Loan {
   @Prop({ required: true })
   repaymentPeriod: number;
 
-  @Prop({ required: true, enum: LoanStatus, default: LoanStatus.PENDING })
+  @Prop({ enum: LoanStatus, default: LoanStatus.PENDING })
   @IsEnum(LoanStatus)
   status: LoanStatus;
 
@@ -34,16 +34,16 @@ export class Loan {
   @Prop({ type: Types.ObjectId, ref: 'User' })
   disbursedBy?: Types.ObjectId;
 
-  @Prop({ required: true })
-  remainingBalance: number;
+  @Prop({})
+  remainingBalance?: number;
 
   @Prop({ required: false })
   @IsOptional()
   @IsDateString()
   disbursementDate?: Date;
 
-  @Prop({ required: true })
-  dueDate: Date;
+  @Prop({})
+  dueDate?: Date;
 
   @Prop({ default: 0 })
   @IsNumber()

@@ -1,27 +1,46 @@
-import { Injectable } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import * as bcrypt from 'bcryptjs';
 import { User, UserDocument } from '../schemas/user.schema';
+import { Role } from '../enums/roles.enum';
 
 @Injectable()
 export class UsersService {
   constructor(@InjectModel(User.name) private userModel: Model<UserDocument>) {}
 
   async assignRole(
-    name: string,
-    email: string,
-    password: string,
-    role: string,
-  ) {
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const user = new this.userModel({
-      name,
-      email,
-      password: hashedPassword,
-      role,
-    });
-    return user.save();
+    requestingUser: User,
+    userId: string,
+    newRole: Role,
+  ): Promise<any> {
+    // Check if the requesting user is actually an admin
+    if (requestingUser.role !== Role.ADMIN) {
+      throw new ForbiddenException('Only an admin can change user roles');
+    }
+
+    // Find the user whose role is being changed
+    const user = await this.userModel.findById(userId);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    if (!newRole) {
+      throw new ForbiddenException('new role has to be provided');
+    }
+    console.log(newRole);
+    console.log(user);
+
+    // Update role
+    user.role = newRole;
+    const userRoleChanged = await user.save();
+    return {
+      message: 'Role has been changed',
+      user: userRoleChanged,
+    };
   }
 
   async findUserByEmail(email: string) {

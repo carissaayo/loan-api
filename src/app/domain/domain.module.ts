@@ -16,6 +16,8 @@ import { JwtAuthGuard } from '../auth/jwt.guard';
 import { FirebaseService } from './services/firebase.service';
 import { TwilioService } from './services/twillio.service';
 import { RolesGuard } from './middleware/role.guard';
+import { UsersController } from './controllers/user.controller';
+import { LoanService } from './services/loan.service';
 
 export const ALL_SERVICES = fs
   .readdirSync(path.join(path.dirname(__filename), 'services'))
@@ -49,7 +51,7 @@ export const ALL_SERVICES = fs
     MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
   ],
 
-  controllers: [AuthController],
+  controllers: [AuthController, UsersController],
   providers: [
     {
       provide: APP_GUARD,
@@ -63,7 +65,8 @@ export const ALL_SERVICES = fs
     JwtStrategy,
     JwtAuthGuard,
     AuthService,
-    FirebaseService,
+    LoanService,
+    // FirebaseService,
     {
       provide: 'TWILIO_CLIENT',
       useFactory: (configService: ConfigService) => {
@@ -76,6 +79,6 @@ export const ALL_SERVICES = fs
     },
     TwilioService,
   ],
-  exports: [UsersService, TwilioService],
+  exports: [UsersService],
 })
 export class DomainModule {}

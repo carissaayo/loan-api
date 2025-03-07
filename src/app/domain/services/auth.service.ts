@@ -23,7 +23,7 @@ export class AuthService {
     @InjectModel(User.name) private readonly userModel: Model<UserDocument>,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
-    private readonly firebaseService: FirebaseService,
+    // private readonly firebaseService: FirebaseService,
     private readonly twilioService: TwilioService,
   ) {}
 
@@ -58,13 +58,18 @@ export class AuthService {
         email,
         password: hashedPassword,
         phone,
-        // firebaseUid: firebaseUser.uid,
         name,
       });
       await user.save();
       const { role, isVerified, _id } = user;
+      // Generate a verification token
+      const token = this.jwtService.sign({ email }, { expiresIn: '1d' });
+
+      await this.sendVerificationEmail(email, token);
+
       return {
-        message: 'User registered successfully',
+        message:
+          'User registered successfully. Check your email for the verification link.',
         user: {
           email,
           phone,
@@ -109,15 +114,14 @@ export class AuthService {
       role: user.role,
       phone: user.phone,
     };
-    const acessToken = this.jwtService.sign(payload);
+    const accessToken = this.jwtService.sign(payload);
     const userDetails = {
       email: user.email,
       phone: user.phone,
       role: user.role,
-      //   firebaseUid: user.firebaseUid,
       name: user.name,
     };
-    return { acessToken, userDetails };
+    return { accessToken, userDetails };
   }
 
   async sendVerificationEmail(email: string, token: string) {

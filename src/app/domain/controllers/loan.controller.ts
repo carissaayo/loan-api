@@ -1,19 +1,21 @@
-import { Controller, Post, Body, UseGuards } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards, Req } from '@nestjs/common';
 
 import { JwtAuthGuard } from 'src/app/auth/jwt.guard';
-import { RolesGuard } from '../middleware/role.guard';
+import { AuthenticatedRequest, RolesGuard } from '../middleware/role.guard';
 import { Roles } from '../middleware/role.decorator';
 import { Role } from '../enums/roles.enum';
 import { LoanService } from '../services/loan.service';
+import { CreateLoanDto } from '../dto/loan.dto';
 
 @Controller('loans')
 export class LoanController {
   constructor(private readonly loanService: LoanService) {}
 
-  @Post('request')
+  @Roles(Role.USER)
+  @Post('request-loan')
   @UseGuards(JwtAuthGuard)
-  async requestLoan(@Body() loanDto, @Body('userId') userId: string) {
-    return this.loanService.requestLoan(loanDto, userId);
+  async requestLoan(@Req() req: AuthenticatedRequest, @Body() CreateLoanDto) {
+    return this.loanService.requestLoan(CreateLoanDto, req.user);
   }
 
   @Post('approve')
