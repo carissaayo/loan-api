@@ -30,12 +30,36 @@ export class Loan {
 
   @Prop({ type: Types.ObjectId, ref: 'User' })
   approvedBy?: Types.ObjectId;
+  @Prop({ type: Types.ObjectId, ref: 'User' })
+  rejectedBy?: Types.ObjectId;
+  @Prop({ type: Types.ObjectId, ref: 'User' })
+  reviewedBy?: Types.ObjectId;
 
   @Prop({ type: Types.ObjectId, ref: 'User' })
   disbursedBy?: Types.ObjectId;
 
   @Prop({})
   remainingBalance?: number;
+
+  @Prop({ required: false })
+  @IsOptional()
+  @IsDateString()
+  requestDate?: Date;
+
+  @Prop({ required: false })
+  @IsOptional()
+  @IsDateString()
+  reviewedDate?: Date;
+
+  @Prop({ required: false })
+  @IsOptional()
+  @IsDateString()
+  approvalDate?: Date;
+
+  @Prop({ required: false })
+  @IsOptional()
+  @IsDateString()
+  rejectionDate?: Date;
 
   @Prop({ required: false })
   @IsOptional()

@@ -18,6 +18,8 @@ import { TwilioService } from './services/twillio.service';
 import { RolesGuard } from './middleware/role.guard';
 import { UsersController } from './controllers/user.controller';
 import { LoanService } from './services/loan.service';
+import { LoanController } from './controllers/loan.controller';
+import { Loan, LoanSchema } from './schemas/loan.schema';
 
 export const ALL_SERVICES = fs
   .readdirSync(path.join(path.dirname(__filename), 'services'))
@@ -48,10 +50,13 @@ export const ALL_SERVICES = fs
         return { uri };
       },
     }),
-    MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
+    MongooseModule.forFeature([
+      { name: User.name, schema: UserSchema },
+      { name: Loan.name, schema: LoanSchema },
+    ]),
   ],
 
-  controllers: [AuthController, UsersController],
+  controllers: [AuthController, UsersController, LoanController],
   providers: [
     {
       provide: APP_GUARD,
@@ -79,6 +84,6 @@ export const ALL_SERVICES = fs
     },
     TwilioService,
   ],
-  exports: [UsersService],
+  exports: [UsersService, LoanService],
 })
 export class DomainModule {}

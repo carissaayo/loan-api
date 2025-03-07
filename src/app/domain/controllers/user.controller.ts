@@ -20,9 +20,9 @@ export class UsersController {
 
   @Patch(':id/role')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(Role.ADMIN) // Ensure only admins can access
+  @Roles(Role.ADMIN)
   async changeUserRole(
-    @Req() req: AuthenticatedRequest, // Get the logged-in user
+    @Req() req: AuthenticatedRequest,
     @Param('id') userId: string,
     @Body('newRole') newRole: Role,
   ) {

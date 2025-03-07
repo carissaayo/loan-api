@@ -1,11 +1,20 @@
-import { Controller, Post, Body, UseGuards, Req } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  UseGuards,
+  Req,
+  BadRequestException,
+  Param,
+  Get,
+  Patch,
+} from '@nestjs/common';
 
 import { JwtAuthGuard } from 'src/app/auth/jwt.guard';
 import { AuthenticatedRequest, RolesGuard } from '../middleware/role.guard';
 import { Roles } from '../middleware/role.decorator';
 import { Role } from '../enums/roles.enum';
 import { LoanService } from '../services/loan.service';
-import { CreateLoanDto } from '../dto/loan.dto';
 
 @Controller('loans')
 export class LoanController {
@@ -18,17 +27,54 @@ export class LoanController {
     return this.loanService.requestLoan(CreateLoanDto, req.user);
   }
 
-  @Post('approve')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(Role.RISK_ASSESSOR)
-  async approveLoan(@Body() approvalDto, @Body('loanId') loanId: string) {
-    return this.loanService.approveLoan(approvalDto, loanId);
+  @Get(':loanId/get')
+  @UseGuards(JwtAuthGuard)
+  async getSingleLoan(@Param('loanId') loanId: string) {
+    if (!loanId) {
+      throw new BadRequestException('Loan Id is required');
+    }
+    return this.loanService.getALoan(loanId);
   }
 
-  @Post('disburse')
+  @Patch(':loanId/review')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.RISK_ASSESSOR)
+  async reviewLoan(
+    @Param('loanId') loanId: string,
+    @Req() req: AuthenticatedRequest,
+  ) {
+    return this.loanService.reviewLoan(loanId, req);
+  }
+
+  @Roles(Role.RISK_ASSESSOR)
+  @Patch(':loanId/approve')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.RISK_ASSESSOR)
+  async approveLoan(
+    @Param('loanId') loanId: string,
+    @Req() req: AuthenticatedRequest,
+  ) {
+    return this.loanService.approveLoan(req, loanId);
+  }
+
+  @Roles(Role.RISK_ASSESSOR)
+  @Patch(':loanId/reject')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.RISK_ASSESSOR)
+  async rejectLoan(
+    @Param('loanId') loanId: string,
+    @Req() req: AuthenticatedRequest,
+  ) {
+    return this.loanService.rejectLoan(req, loanId);
+  }
+
+  @Patch(':loanId/disburse')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.FINANCE_ADMIN)
-  async disburseLoan(@Body() disbursementDto, @Body('loanId') loanId: string) {
-    return this.loanService.disburseLoan(disbursementDto, loanId);
+  async disburseLoan(
+    @Param('loanId') loanId: string,
+    @Req() req: AuthenticatedRequest,
+  ) {
+    return this.loanService.disburseLoan(loanId, req);
   }
 }

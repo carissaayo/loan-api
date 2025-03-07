@@ -10,6 +10,10 @@ export class CreateLoanDto {
   @IsNumber()
   repaymentPeriod: number;
 }
+export class ReviewLoanDto {
+  @IsEnum(LoanStatus)
+  status: LoanStatus;
+}
 
 export class ApproveLoanDto {
   @IsEnum(LoanStatus)
