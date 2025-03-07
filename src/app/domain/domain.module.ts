@@ -1,19 +1,21 @@
 import { Module, Type } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
-
 import * as fs from 'fs';
 import * as path from 'path';
+import { Twilio } from 'twilio';
+import { APP_GUARD } from '@nestjs/core';
+import { MongooseModule } from '@nestjs/mongoose';
+
 import { AuthController } from './controllers/auth.controller';
 import { AuthService } from './services/auth.service';
 import { JwtStrategy } from '../auth/jwt.strategy';
-import { MongooseModule } from '@nestjs/mongoose';
 import { UsersService } from './services/user.service';
 import { User, UserSchema } from './schemas/user.schema';
 import { JwtAuthGuard } from '../auth/jwt.guard';
 import { FirebaseService } from './services/firebase.service';
 import { TwilioService } from './services/twillio.service';
-import { Twilio } from 'twilio';
+import { RolesGuard } from './middleware/role.guard';
 
 export const ALL_SERVICES = fs
   .readdirSync(path.join(path.dirname(__filename), 'services'))
@@ -49,6 +51,14 @@ export const ALL_SERVICES = fs
 
   controllers: [AuthController],
   providers: [
+    {
+      provide: APP_GUARD,
+      useClass: JwtAuthGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: RolesGuard,
+    },
     UsersService,
     JwtStrategy,
     JwtAuthGuard,

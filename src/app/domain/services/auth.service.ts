@@ -47,29 +47,29 @@ export class AuthService {
 
     try {
       // Create Firebase user
-      const firebaseUser = await this.firebaseService.createFirebaseUser(
-        email,
-        password,
-        phone,
-      );
+      //   const firebaseUser = await this.firebaseService.createFirebaseUser(
+      //     email,
+      //     password,
+      //     phone,
+      //   );
 
       // Create User in MongoDB with Firebase UID
       const user = new this.userModel({
         email,
         password: hashedPassword,
         phone,
-        firebaseUid: firebaseUser.uid,
+        // firebaseUid: firebaseUser.uid,
         name,
       });
       await user.save();
-      const { role, isVerified, firebaseUid, _id } = user;
+      const { role, isVerified, _id } = user;
       return {
         message: 'User registered successfully',
         user: {
           email,
           phone,
           name,
-          firebaseUid,
+
           isVerified,
           role,
           _id,
@@ -83,14 +83,14 @@ export class AuthService {
   async login(loginDto: LoginDto) {
     const { email, password } = loginDto;
     // Verify credentials with Firebase
-    const firebaseUser = await this.firebaseService.verifyUser(email);
-    if (!firebaseUser) {
-      throw new UnauthorizedException('No user found with the email');
-    }
+    // const firebaseUser = await this.firebaseService.verifyUser(email);
+    // if (!firebaseUser) {
+    //   throw new UnauthorizedException('No user found with the email');
+    // }
 
     // Find user in MongoDB using Firebase UID
     const user = await this.userModel.findOne({
-      firebaseUid: firebaseUser.uid,
+      email,
     });
     if (!user) {
       throw new UnauthorizedException('User not found');
@@ -114,7 +114,7 @@ export class AuthService {
       email: user.email,
       phone: user.phone,
       role: user.role,
-      firebaseUid: user.firebaseUid,
+      //   firebaseUid: user.firebaseUid,
       name: user.name,
     };
     return { acessToken, userDetails };

@@ -1,41 +1,74 @@
-import { Injectable } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { Loan, LoanDocument } from '../schemas/loan.schema';
+import { Loan, LoanStatus } from '../schemas/loan.schema';
+import {
+  ApproveLoanDto,
+  CreateLoanDto,
+  DisburseLoanDto,
+  RepaymentDto,
+} from '../dto/loan.dto';
 
 @Injectable()
-export class LoansService {
-  constructor(@InjectModel(Loan.name) private loanModel: Model<LoanDocument>) {}
+export class LoanService {
+  constructor(@InjectModel(Loan.name) private loanModel: Model<Loan>) {}
 
-  async requestLoan(userId: string, amount: number, repaymentPeriod: number) {
-    const dueDate = new Date();
-    dueDate.setMonth(dueDate.getMonth() + repaymentPeriod);
-
+  async requestLoan(
+    createLoanDto: CreateLoanDto,
+    userId: string,
+  ): Promise<Loan> {
     const loan = new this.loanModel({
+      ...createLoanDto,
       user: userId,
-      amount,
-      repayment_period: repaymentPeriod,
-      status: 'Pending',
-      remaining_balance: amount,
-      due_date: dueDate,
+      status: LoanStatus.PENDING,
     });
-
     return loan.save();
   }
 
-  async approveLoan(loanId: string, approverId: string) {
-    return this.loanModel.findByIdAndUpdate(
-      loanId,
-      { status: 'Approved', approved_by: approverId },
-      { new: true },
-    );
+  async approveLoan(
+    approveLoanDto: ApproveLoanDto,
+    loanId: string,
+  ): Promise<Loan> {
+    const loan = await this.loanModel.findById(loanId);
+    if (!loan) throw new NotFoundException('Loan not found');
+    if (loan.status !== LoanStatus.PENDING) {
+      throw new BadRequestException('Loan cannot be approved at this stage');
+    }
+    loan.status = LoanStatus.IN_REVIEW;
+    return loan.save();
   }
 
-  async disburseLoan(loanId: string, disburserId: string) {
-    return this.loanModel.findByIdAndUpdate(
-      loanId,
-      { status: 'Disbursed', disbursed_by: disburserId },
-      { new: true },
-    );
+  async disburseLoan(
+    disburseLoanDto: DisburseLoanDto,
+    loanId: string,
+  ): Promise<Loan> {
+    const loan = await this.loanModel.findById(loanId);
+    if (!loan) throw new NotFoundException('Loan not found');
+    if (loan.status !== LoanStatus.APPROVED) {
+      throw new BadRequestException('Loan is not approved for disbursement');
+    }
+    loan.status = LoanStatus.DISBURSED;
+    loan.disbursementDate = new Date();
+    return loan.save();
+  }
+
+  async makeRepayment(
+    repaymentDto: RepaymentDto,
+    loanId: string,
+  ): Promise<Loan> {
+    const loan = await this.loanModel.findById(loanId);
+    if (!loan) throw new NotFoundException('Loan not found');
+    if (loan.status !== LoanStatus.DISBURSED) {
+      throw new BadRequestException('Loan is not disbursed yet');
+    }
+    loan.amountPaid += repaymentDto.amount;
+    if (loan.amountPaid >= loan.totalAmount) {
+      loan.status = LoanStatus.PAID;
+    }
+    return loan.save();
   }
 }
