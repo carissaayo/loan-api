@@ -1,4 +1,9 @@
-import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
+import {
+  Injectable,
+  HttpException,
+  HttpStatus,
+  BadRequestException,
+} from '@nestjs/common';
 import axios from 'axios';
 import { ConfigService } from '@nestjs/config';
 import { AccountNumberDto } from '../dto/user.dto';
@@ -43,6 +48,13 @@ export class PaystackService {
     req: any,
   ): Promise<any> {
     try {
+      const user = await this.userService.findUser(req.user.userId);
+      const doesAccountExist = user?.banks.filter(
+        (bank) => bank.account_number === accountDetails.account_number,
+      )[0];
+      if (doesAccountExist) {
+        throw new BadRequestException('Account number already exist');
+      }
       const response = await axios.post(
         `${this.configService.get<string>('PAYSTACK_BASE_URL')}/transferrecipient`,
         {
@@ -82,7 +94,7 @@ export class PaystackService {
       console.log(error);
 
       throw new HttpException(
-        error.response?.data || 'Paystack transfer failed',
+        error || 'Paystack transfer failed',
         HttpStatus.BAD_REQUEST,
       );
     }
