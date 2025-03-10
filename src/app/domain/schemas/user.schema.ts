@@ -15,9 +15,6 @@ export class User {
   @Prop({ required: true })
   password: string;
 
-  @Prop()
-  accountNumber: string;
-
   @Prop({ required: true })
   phone: string;
 
@@ -26,6 +23,26 @@ export class User {
 
   @Prop({ type: [{ type: Types.ObjectId, ref: 'Loan' }] })
   loans: Types.ObjectId[];
+  @Prop({
+    type: [
+      {
+        account_number: { type: String, required: true },
+        account_name: { type: String, required: true },
+        bank_code: { type: String, required: true },
+        bank_name: { type: String, required: true },
+        recipient_code: { type: String, required: true },
+      },
+    ],
+    default: [],
+    _id: false, // Prevents MongoDB from auto-generating _id for each bank object
+  })
+  banks: {
+    account_number: string;
+    account_name: string;
+    bank_code: string;
+    bank_name: string;
+    recipient_code: string;
+  }[];
 
   @Prop({ required: true, enum: Role, default: Role.USER })
   role: Role;

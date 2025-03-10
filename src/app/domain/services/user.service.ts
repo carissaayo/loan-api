@@ -1,5 +1,7 @@
 import {
   ForbiddenException,
+  HttpException,
+  HttpStatus,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -9,10 +11,15 @@ import * as bcrypt from 'bcryptjs';
 import { User, UserDocument } from '../schemas/user.schema';
 import { Role } from '../enums/roles.enum';
 import axios from 'axios';
+import { AccountNumberDto } from '../dto/user.dto';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class UsersService {
-  constructor(@InjectModel(User.name) private userModel: Model<UserDocument>) {}
+  constructor(
+    @InjectModel(User.name) private userModel: Model<UserDocument>,
+    private readonly configService: ConfigService,
+  ) {}
 
   async assignRole(
     requestingUser: User,
@@ -53,9 +60,7 @@ export class UsersService {
 
     throw new NotFoundException('User not found');
   }
-  async addAccountNumber(accountNumber: any): Promise<any> {
-    // const banks =axios.get()
-  }
+
   async findUserByEmail(email: string) {
     return this.userModel.findOne({ email }).exec();
   }

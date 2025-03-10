@@ -28,6 +28,7 @@ export class UsersController {
   ) {
     return await this.usersService.assignRole(req.user, userId, newRole);
   }
+
   @Get()
   async getAllUsers() {
     // return this.usersService.getAllUsers();

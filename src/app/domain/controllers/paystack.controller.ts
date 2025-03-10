@@ -11,6 +11,7 @@ import {
 import { PaystackService } from '../services/paystack.service';
 import { JwtAuthGuard } from 'src/app/auth/jwt.guard';
 import * as crypto from 'crypto';
+import { AuthenticatedRequest } from '../middleware/role.guard';
 
 @Controller('paystack')
 @UseGuards(JwtAuthGuard) // Protect routes
@@ -20,6 +21,18 @@ export class PaystackController {
   @Get('banks')
   async getBanks() {
     return this.paystackService.GetBank();
+  }
+
+  @Post('create-recipient')
+  async createRecipient(
+    @Body('account_number') account_number: string,
+    @Body('name') name: string,
+    @Body('bank_code') bank_code: string,
+    @Req() req: AuthenticatedRequest,
+  ) {
+    const accountDetails = { account_number, name, bank_code };
+
+    return this.paystackService.addAccountNumber(accountDetails, req);
   }
 
   @Post('disburse-loan')
