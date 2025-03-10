@@ -8,6 +8,7 @@ import { Model } from 'mongoose';
 import * as bcrypt from 'bcryptjs';
 import { User, UserDocument } from '../schemas/user.schema';
 import { Role } from '../enums/roles.enum';
+import axios from 'axios';
 
 @Injectable()
 export class UsersService {
@@ -42,7 +43,19 @@ export class UsersService {
       user: userRoleChanged,
     };
   }
+  async findUser(userId: any): Promise<any> {
+    const user = await this.userModel.findById(userId).exec();
+    if (user) {
+      const { password, ...userDetails } = user.toObject();
 
+      return userDetails;
+    }
+
+    throw new NotFoundException('User not found');
+  }
+  async addAccountNumber(accountNumber: any): Promise<any> {
+    // const banks =axios.get()
+  }
   async findUserByEmail(email: string) {
     return this.userModel.findOne({ email }).exec();
   }

@@ -11,6 +11,11 @@ export enum LoanStatus {
   REJECTED = 'Rejected',
 }
 
+export enum PaymentMethod {
+  FULL_PAYMENT = 'Full Payment',
+  PARTIAL_PAYMENT = 'Partial Payment',
+}
+
 export type LoanDocument = Loan & Document;
 
 @Schema({ timestamps: true })
@@ -27,6 +32,10 @@ export class Loan {
   @Prop({ enum: LoanStatus, default: LoanStatus.PENDING })
   @IsEnum(LoanStatus)
   status: LoanStatus;
+
+  @Prop({ enum: PaymentMethod, default: PaymentMethod.PARTIAL_PAYMENT })
+  @IsEnum(PaymentMethod)
+  paymentMethod: PaymentMethod;
 
   @Prop({ type: Types.ObjectId, ref: 'User' })
   approvedBy?: Types.ObjectId;

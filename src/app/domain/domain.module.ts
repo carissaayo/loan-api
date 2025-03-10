@@ -20,6 +20,8 @@ import { UsersController } from './controllers/user.controller';
 import { LoanService } from './services/loan.service';
 import { LoanController } from './controllers/loan.controller';
 import { Loan, LoanSchema } from './schemas/loan.schema';
+import { PaystackService } from './services/paystack.service';
+import { PaystackController } from './controllers/paystack.controller';
 
 export const ALL_SERVICES = fs
   .readdirSync(path.join(path.dirname(__filename), 'services'))
@@ -56,7 +58,12 @@ export const ALL_SERVICES = fs
     ]),
   ],
 
-  controllers: [AuthController, UsersController, LoanController],
+  controllers: [
+    AuthController,
+    UsersController,
+    LoanController,
+    PaystackController,
+  ],
   providers: [
     {
       provide: APP_GUARD,
@@ -71,7 +78,8 @@ export const ALL_SERVICES = fs
     JwtAuthGuard,
     AuthService,
     LoanService,
-    // FirebaseService,
+    PaystackService,
+
     {
       provide: 'TWILIO_CLIENT',
       useFactory: (configService: ConfigService) => {
@@ -84,6 +92,6 @@ export const ALL_SERVICES = fs
     },
     TwilioService,
   ],
-  exports: [UsersService, LoanService],
+  exports: [UsersService, LoanService, PaystackService],
 })
 export class DomainModule {}

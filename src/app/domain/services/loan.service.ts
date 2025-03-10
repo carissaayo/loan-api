@@ -4,13 +4,20 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { Loan, LoanDocument, LoanStatus } from '../schemas/loan.schema';
 import { CreateLoanDto, DisburseLoanDto, RepaymentDto } from '../dto/loan.dto';
+import { User, UserDocument } from '../schemas/user.schema';
+import { UsersService } from './user.service';
+import { PaystackService } from './paystack.service';
 
 @Injectable()
 export class LoanService {
-  constructor(@InjectModel(Loan.name) private loanModel: Model<LoanDocument>) {}
+  constructor(
+    @InjectModel(Loan.name) private loanModel: Model<LoanDocument>,
+    private readonly userService: UsersService,
+    private paystackService: PaystackService,
+  ) {}
 
   async requestLoan(createLoanDto: CreateLoanDto, req: any): Promise<any> {
     if (!req.userId) {
@@ -24,8 +31,15 @@ export class LoanService {
       status: LoanStatus.PENDING,
       requestDate,
     });
+    await loan.save();
+    const user = await this.userService.findUser(req.userId);
 
-    loan.save();
+    if (user) {
+      const loanId = new Types.ObjectId(loan._id as string);
+      user.loans.push(loanId);
+      await user.save();
+    }
+
     return { message: 'Loan request has been made', loan };
   }
   async getALoan(loanId: string): Promise<any> {
@@ -93,7 +107,18 @@ export class LoanService {
     loan.status = LoanStatus.DISBURSED;
     loan.disbursementDate = new Date();
     loan.disbursedBy = req.user.userId;
-    loan.save();
+    // const userId = new Types.ObjectId(loan.userId);
+    const user = await this.userService.findUser(loan.userId);
+
+    const transferFund = await this.paystackService.initiateTransfer(
+      user.accountNumber,
+      loan.amount,
+      'loan has been disbursed',
+    );
+    console.log(transferFund);
+
+    // loan.save();
+
     return { message: 'Funds has been disbursed for this loan', loan };
   }
 
