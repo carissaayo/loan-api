@@ -50,6 +50,8 @@ export class Loan {
   @Prop({})
   remainingBalance?: number;
 
+  @Prop({ required: true })
+  account_number?: string;
   @Prop({ required: false })
   @IsOptional()
   @IsDateString()

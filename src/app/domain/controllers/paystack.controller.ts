@@ -11,7 +11,9 @@ import {
 import { PaystackService } from '../services/paystack.service';
 import { JwtAuthGuard } from 'src/app/auth/jwt.guard';
 import * as crypto from 'crypto';
-import { AuthenticatedRequest } from '../middleware/role.guard';
+import { AuthenticatedRequest, RolesGuard } from '../middleware/role.guard';
+import { Roles } from '../middleware/role.decorator';
+import { Role } from '../enums/roles.enum';
 
 @Controller('paystack')
 @UseGuards(JwtAuthGuard) // Protect routes
@@ -23,6 +25,8 @@ export class PaystackController {
     return this.paystackService.GetBank();
   }
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.USER)
   @Post('create-recipient')
   async createRecipient(
     @Body('account_number') account_number: string,
@@ -35,25 +39,25 @@ export class PaystackController {
     return this.paystackService.addAccountNumber(accountDetails, req);
   }
 
-  @Post('disburse-loan')
-  async disburseLoan(
-    @Body()
-    {
-      recipientAccountNumber,
-      amount,
-      reason,
-    }: {
-      recipientAccountNumber: string;
-      amount: number;
-      reason: string;
-    },
-  ) {
-    return this.paystackService.initiateTransfer(
-      recipientAccountNumber,
-      amount,
-      reason,
-    );
-  }
+  // @Post('disburse-loan')
+  // async disburseLoan(
+  //   @Body()
+  //   {
+  //     recipientAccountNumber,
+  //     amount,
+  //     reason,
+  //   }: {
+  //     recipientAccountNumber: string;
+  //     amount: number;
+  //     reason: string;
+  //   },
+  // ) {
+  //   return this.paystackService.initiateTransfer(
+  //     recipientAccountNumber,
+  //     amount,
+  //     reason,
+  //   );
+  // }
 
   @Post('verify-payment')
   async verifyPayment(@Query('reference') reference: string) {

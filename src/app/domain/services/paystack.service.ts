@@ -58,12 +58,6 @@ export class PaystackService {
         },
       );
 
-      console.log(response.data.data);
-
-      // const user = await this.userService.findUser(req.userId);
-      // user.banks.push(response.data.details);
-      // await user.save();
-
       const bank = {
         recipient_code: response.data.data.recipient_code,
         account_number: response.data.data.details.account_number,
@@ -93,11 +87,7 @@ export class PaystackService {
       );
     }
   }
-  async initiateTransfer(
-    accountNumber: string,
-    amount: number,
-    reason: string,
-  ) {
+  async initiateTransfer(amount: number, recipient: string, reason: string) {
     try {
       const response = await axios.post(
         `${this.configService.get<string>('PAYSTACK_BASE_URL')}/transfer`,
@@ -105,7 +95,7 @@ export class PaystackService {
           source: 'balance',
           reason,
           amount: amount * 100, // Convert to kobo
-          recipient: accountNumber,
+          recipient: recipient,
         },
         {
           headers: {
@@ -117,6 +107,8 @@ export class PaystackService {
 
       return response.data;
     } catch (error) {
+      console.log(error);
+
       throw new HttpException(
         error.response?.data || 'Paystack transfer failed',
         HttpStatus.BAD_REQUEST,

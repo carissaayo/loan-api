@@ -57,7 +57,6 @@ export class LoanController {
     return this.loanService.approveLoan(req, loanId);
   }
 
-  @Roles(Role.RISK_ASSESSOR)
   @Patch(':loanId/reject')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.RISK_ASSESSOR)
@@ -74,6 +73,7 @@ export class LoanController {
   async disburseLoan(
     @Param('loanId') loanId: string,
     @Req() req: AuthenticatedRequest,
+    @Body('account_number') account_number: string,
   ) {
     return this.loanService.disburseLoan(loanId, req);
   }

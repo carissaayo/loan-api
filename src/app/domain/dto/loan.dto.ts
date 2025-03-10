@@ -9,6 +9,9 @@ export class CreateLoanDto {
   @IsNotEmpty()
   @IsNumber()
   repaymentPeriod: number;
+
+  @IsNotEmpty()
+  account_number: number;
 }
 export class ReviewLoanDto {
   @IsEnum(LoanStatus)

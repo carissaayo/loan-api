@@ -33,6 +33,12 @@ export class LoanService {
     });
     await loan.save();
     const user = await this.userService.findUser(req.userId);
+    const doesAccountNumberMatches = user.banks.filter(
+      (bank) => bank.account_number === loan.account_number,
+    );
+    if (!doesAccountNumberMatches[0]) {
+      throw new NotFoundException('Account number is not registered');
+    }
 
     if (user) {
       const loanId = new Types.ObjectId(loan._id as string);
@@ -98,21 +104,26 @@ export class LoanService {
     loan.save();
     return { message: 'Loan has been rejected', loan };
   }
+
   async disburseLoan(loanId: string, req: any): Promise<any> {
     const loan = await this.loanModel.findById(loanId);
     if (!loan) throw new NotFoundException('Loan not found');
     if (loan.status !== LoanStatus.APPROVED) {
       throw new BadRequestException('Loan is not approved for disbursement');
     }
+    const user = await this.userService.findUser(loan.userId);
+
     loan.status = LoanStatus.DISBURSED;
     loan.disbursementDate = new Date();
     loan.disbursedBy = req.user.userId;
-    // const userId = new Types.ObjectId(loan.userId);
-    const user = await this.userService.findUser(loan.userId);
+    const recipient = user.banks.filter(
+      (bank) => bank.account_number === loan.account_number,
+    )[0]?.recipient_code;
 
+    const amount = loan.amount;
     const transferFund = await this.paystackService.initiateTransfer(
-      user.accountNumber,
-      loan.amount,
+      amount,
+      recipient,
       'loan has been disbursed',
     );
     console.log(transferFund);
