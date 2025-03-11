@@ -10,25 +10,24 @@ import {
   Patch,
 } from '@nestjs/common';
 
-import { JwtAuthGuard } from 'src/app/auth/jwt.guard';
+import { EmailVerifiedGuard, JwtAuthGuard } from 'src/app/auth/jwt.guard';
 import { AuthenticatedRequest, RolesGuard } from '../middleware/role.guard';
 import { Roles } from '../middleware/role.decorator';
 import { Role } from '../enums/roles.enum';
 import { LoanService } from '../services/loan.service';
 
 @Controller('loans')
+@UseGuards(JwtAuthGuard, RolesGuard, EmailVerifiedGuard)
 export class LoanController {
   constructor(private readonly loanService: LoanService) {}
 
   @Roles(Role.USER)
   @Post('request-loan')
-  @UseGuards(JwtAuthGuard)
   async requestLoan(@Req() req: AuthenticatedRequest, @Body() CreateLoanDto) {
     return this.loanService.requestLoan(CreateLoanDto, req.user);
   }
 
   @Get(':loanId/get')
-  @UseGuards(JwtAuthGuard)
   async getSingleLoan(@Param('loanId') loanId: string) {
     if (!loanId) {
       throw new BadRequestException('Loan Id is required');
@@ -37,7 +36,6 @@ export class LoanController {
   }
 
   @Patch(':loanId/review')
-  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.RISK_ASSESSOR)
   async reviewLoan(
     @Param('loanId') loanId: string,
@@ -48,7 +46,6 @@ export class LoanController {
 
   @Roles(Role.RISK_ASSESSOR)
   @Patch(':loanId/approve')
-  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.RISK_ASSESSOR)
   async approveLoan(
     @Param('loanId') loanId: string,
@@ -58,7 +55,6 @@ export class LoanController {
   }
 
   @Patch(':loanId/reject')
-  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.RISK_ASSESSOR)
   async rejectLoan(
     @Param('loanId') loanId: string,
@@ -68,7 +64,6 @@ export class LoanController {
   }
 
   @Patch(':loanId/disburse')
-  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.FINANCE_ADMIN)
   async disburseLoan(
     @Param('loanId') loanId: string,

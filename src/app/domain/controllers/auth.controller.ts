@@ -13,7 +13,7 @@ import {
 import { AuthService } from '../services/auth.service';
 import { LoginDto, RegisterDto } from '../dto/auth.dto';
 import { JwtAuthGuard } from 'src/app/auth/jwt.guard';
-import { TwilioService } from '../services/twillio.service';
+
 import { Public } from '../middleware/public.decorator';
 
 @Controller('auth')
@@ -24,10 +24,7 @@ import { Public } from '../middleware/public.decorator';
   }),
 )
 export class AuthController {
-  constructor(
-    private readonly authService: AuthService,
-    private readonly twilioService: TwilioService,
-  ) {}
+  constructor(private readonly authService: AuthService) {}
 
   @Public()
   @Post('register')
@@ -71,20 +68,5 @@ export class AuthController {
     } catch (error) {
       throw new BadRequestException(error.message);
     }
-  }
-
-  @Post('send-otp')
-  async sendOtp(@Body('phoneNumber') phoneNumber: string) {
-    // const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    return this.twilioService.sendOTP(phoneNumber);
-  }
-
-  @Post('verify-otp')
-  async verifyOtp(
-    @Body('phoneNumber') phoneNumber: string,
-    @Body('code') code: string,
-  ) {
-    // const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    return this.twilioService.verifyOTP(phoneNumber, code);
   }
 }

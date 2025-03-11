@@ -21,6 +21,12 @@ export class User {
   @Prop({ default: false })
   isVerified: boolean;
 
+  @Prop({ default: 0 })
+  loanBalance: number;
+
+  @Prop({ default: 0 })
+  ownedAmount: number;
+
   @Prop({ type: [{ type: Types.ObjectId, ref: 'Loan' }] })
   loans: Types.ObjectId[];
   @Prop({

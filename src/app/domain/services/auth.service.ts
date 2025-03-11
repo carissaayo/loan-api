@@ -15,16 +15,13 @@ import * as nodemailer from 'nodemailer';
 import { User, UserDocument } from '../schemas/user.schema';
 import { LoginDto, RegisterDto } from '../dto/auth.dto';
 import { ConfigService } from '@nestjs/config';
-import { FirebaseService } from './firebase.service';
-import { TwilioService } from './twillio.service';
+
 @Injectable()
 export class AuthService {
   constructor(
     @InjectModel(User.name) private readonly userModel: Model<UserDocument>,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
-    // private readonly firebaseService: FirebaseService,
-    private readonly twilioService: TwilioService,
   ) {}
 
   async register(
@@ -46,14 +43,6 @@ export class AuthService {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     try {
-      // Create Firebase user
-      //   const firebaseUser = await this.firebaseService.createFirebaseUser(
-      //     email,
-      //     password,
-      //     phone,
-      //   );
-
-      // Create User in MongoDB with Firebase UID
       const user = new this.userModel({
         email,
         password: hashedPassword,
@@ -87,11 +76,6 @@ export class AuthService {
 
   async login(loginDto: LoginDto) {
     const { email, password } = loginDto;
-    // Verify credentials with Firebase
-    // const firebaseUser = await this.firebaseService.verifyUser(email);
-    // if (!firebaseUser) {
-    //   throw new UnauthorizedException('No user found with the email');
-    // }
 
     // Find user in MongoDB using Firebase UID
     const user = await this.userModel.findOne({
@@ -113,6 +97,7 @@ export class AuthService {
       email: user.email,
       role: user.role,
       phone: user.phone,
+      isVerified: user.isVerified,
     };
     const accessToken = this.jwtService.sign(payload);
     const userDetails = {
@@ -120,6 +105,7 @@ export class AuthService {
       phone: user.phone,
       role: user.role,
       name: user.name,
+      isVerified: user.isVerified,
     };
     return { accessToken, userDetails };
   }
@@ -198,11 +184,11 @@ export class AuthService {
     }
   }
 
-  async sendOtp(phone: string): Promise<any> {
-    return await this.twilioService.sendOTP(phone);
-  }
+  // async sendOtp(phone: string): Promise<any> {
+  //   return await this.twilioService.sendOTP(phone);
+  // }
 
-  async verifyOTP(phone: string, code: string): Promise<any> {
-    return await this.twilioService.verifyOTP(phone, code);
-  }
+  // async verifyOTP(phone: string, code: string): Promise<any> {
+  //   return await this.twilioService.verifyOTP(phone, code);
+  // }
 }

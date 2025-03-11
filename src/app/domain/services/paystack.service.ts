@@ -37,7 +37,7 @@ export class PaystackService {
       return response.data;
     } catch (error) {
       throw new HttpException(
-        error.response?.data || 'Paystack transfer failed',
+        error || 'Paystack transfer failed',
         HttpStatus.BAD_REQUEST,
       );
     }
@@ -49,9 +49,9 @@ export class PaystackService {
   ): Promise<any> {
     try {
       const user = await this.userService.findUser(req.user.userId);
-      const doesAccountExist = user?.banks.filter(
+      const doesAccountExist = user?.banks.some(
         (bank) => bank.account_number === accountDetails.account_number,
-      )[0];
+      );
       if (doesAccountExist) {
         throw new BadRequestException('Account number already exist');
       }
@@ -122,7 +122,7 @@ export class PaystackService {
       console.log(error);
 
       throw new HttpException(
-        error.response?.data || 'Paystack transfer failed',
+        error || 'Paystack transfer failed',
         HttpStatus.BAD_REQUEST,
       );
     }
@@ -142,7 +142,7 @@ export class PaystackService {
       return response.data;
     } catch (error) {
       throw new HttpException(
-        error.response?.data || 'Transaction verification failed',
+        error || 'Transaction verification failed',
         HttpStatus.BAD_REQUEST,
       );
     }

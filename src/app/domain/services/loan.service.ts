@@ -15,6 +15,7 @@ import { PaystackService } from './paystack.service';
 export class LoanService {
   constructor(
     @InjectModel(Loan.name) private loanModel: Model<LoanDocument>,
+    @InjectModel(User.name) private userModel: Model<UserDocument>,
     private readonly userService: UsersService,
     private paystackService: PaystackService,
   ) {}
@@ -108,10 +109,16 @@ export class LoanService {
   async disburseLoan(loanId: string, req: any): Promise<any> {
     const loan = await this.loanModel.findById(loanId);
     if (!loan) throw new NotFoundException('Loan not found');
+    if (loan.status === LoanStatus.DISBURSED) {
+      throw new BadRequestException('Loan has been disbursed already');
+    }
     if (loan.status !== LoanStatus.APPROVED) {
       throw new BadRequestException('Loan is not approved for disbursement');
     }
-    const user = await this.userService.findUser(loan.userId);
+    const user = await this.userModel.findById(loan.userId);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
 
     loan.status = LoanStatus.DISBURSED;
     loan.disbursementDate = new Date();
@@ -126,11 +133,16 @@ export class LoanService {
       recipient,
       'loan has been disbursed',
     );
-    console.log(transferFund);
 
-    // loan.save();
+    if (transferFund.data.status === 'success') {
+      user.loanBalance += amount;
+      user.ownedAmount += loan.totalAmount;
+    }
 
-    return { message: 'Funds has been disbursed for this loan', loan };
+    await loan.save();
+    await user.save();
+
+    return { message: 'Funds has been disbursed for this loan', user };
   }
 
   async makeRepayment(

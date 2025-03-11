@@ -3,7 +3,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import * as fs from 'fs';
 import * as path from 'path';
-import { Twilio } from 'twilio';
+
 import { APP_GUARD } from '@nestjs/core';
 import { MongooseModule } from '@nestjs/mongoose';
 
@@ -12,9 +12,8 @@ import { AuthService } from './services/auth.service';
 import { JwtStrategy } from '../auth/jwt.strategy';
 import { UsersService } from './services/user.service';
 import { User, UserSchema } from './schemas/user.schema';
-import { JwtAuthGuard } from '../auth/jwt.guard';
-import { FirebaseService } from './services/firebase.service';
-import { TwilioService } from './services/twillio.service';
+import { EmailVerifiedGuard, JwtAuthGuard } from '../auth/jwt.guard';
+
 import { RolesGuard } from './middleware/role.guard';
 import { UsersController } from './controllers/user.controller';
 import { LoanService } from './services/loan.service';
@@ -73,24 +72,16 @@ export const ALL_SERVICES = fs
       provide: APP_GUARD,
       useClass: RolesGuard,
     },
+    {
+      provide: APP_GUARD,
+      useClass: EmailVerifiedGuard,
+    },
     UsersService,
     JwtStrategy,
     JwtAuthGuard,
     AuthService,
     LoanService,
     PaystackService,
-
-    {
-      provide: 'TWILIO_CLIENT',
-      useFactory: (configService: ConfigService) => {
-        return new Twilio(
-          configService.get<string>('TWILIO_ACCOUNT_SID'),
-          configService.get<string>('TWILIO_AUTH_TOKEN'),
-        );
-      },
-      inject: [ConfigService],
-    },
-    TwilioService,
   ],
   exports: [UsersService, LoanService, PaystackService],
 })
