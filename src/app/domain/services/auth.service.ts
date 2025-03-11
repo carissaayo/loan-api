@@ -106,6 +106,7 @@ export class AuthService {
       role: user.role,
       name: user.name,
       isVerified: user.isVerified,
+      id: user._id,
     };
     return { accessToken, userDetails };
   }

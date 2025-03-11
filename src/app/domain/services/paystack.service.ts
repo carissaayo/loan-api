@@ -3,6 +3,7 @@ import {
   HttpException,
   HttpStatus,
   BadRequestException,
+  NotFoundException,
 } from '@nestjs/common';
 import axios from 'axios';
 import { ConfigService } from '@nestjs/config';
@@ -14,8 +15,6 @@ import { InjectModel } from '@nestjs/mongoose';
 
 @Injectable()
 export class PaystackService {
-  private readonly PAYSTACK_SECRET: string;
-
   constructor(
     private configService: ConfigService,
     private userService: UsersService,
@@ -127,14 +126,44 @@ export class PaystackService {
       );
     }
   }
+  async initiateRepayment(email: string, amount: number) {
+    try {
+      const response = await axios.post(
+        `${this.configService.get<string>('PAYSTACK_BASE_URL')}/transaction/initialize`,
+        {
+          email,
+          amount: amount * 100, // Convert to kobo
+          currency: 'NGN',
+          // callback_url: 'https://yourapp.com/payment-success', // Your frontend success page
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${this.configService.get<string>('PAYSTACK_SECRET')}`,
+            'Content-Type': 'application/json',
+          },
+        },
+      );
 
-  async verifyTransaction(reference: string) {
+      return {
+        message: 'Payment link generated',
+        data: response.data.data,
+      };
+    } catch (error) {
+      console.error(error);
+      throw new HttpException(
+        'Payment initiation failed',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+  }
+
+  async verifyRepayment(reference: string) {
     try {
       const response = await axios.get(
         `${this.configService.get<string>('PAYSTACK_BASE_URL')}/transaction/verify/${reference}`,
         {
           headers: {
-            Authorization: `Bearer ${this.PAYSTACK_SECRET}`,
+            Authorization: `Bearer ${this.configService.get<string>('PAYSTACK_SECRET')}`,
           },
         },
       );
@@ -142,7 +171,7 @@ export class PaystackService {
       return response.data;
     } catch (error) {
       throw new HttpException(
-        error || 'Transaction verification failed',
+        error || 'Payment verification failed',
         HttpStatus.BAD_REQUEST,
       );
     }

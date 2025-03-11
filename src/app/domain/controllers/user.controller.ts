@@ -15,11 +15,12 @@ import { Roles } from '../middleware/role.decorator';
 import { Role } from '../enums/roles.enum';
 
 @Controller('users')
+@UseGuards(JwtAuthGuard)
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Patch(':id/role')
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(RolesGuard)
   @Roles(Role.ADMIN)
   async changeUserRole(
     @Req() req: AuthenticatedRequest,
@@ -30,12 +31,13 @@ export class UsersController {
   }
 
   @Get()
+  @Roles(Role.ADMIN)
   async getAllUsers() {
-    // return this.usersService.getAllUsers();
+    return this.usersService.getAllUsers();
   }
 
   @Get(':id')
   async getUserById(@Param('id') userId: string) {
-    // return this.usersService.getUserById(userId);
+    return this.usersService.findUser(userId);
   }
 }

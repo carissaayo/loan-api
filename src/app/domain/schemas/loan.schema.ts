@@ -26,6 +26,9 @@ export class Loan {
   @Prop({ required: true })
   amount: number;
 
+  @Prop({})
+  reference?: string;
+
   @Prop({ required: true })
   repaymentPeriod: number;
 
@@ -48,7 +51,7 @@ export class Loan {
   disbursedBy?: Types.ObjectId;
 
   @Prop({})
-  remainingBalance?: number;
+  remainingBalance: number;
 
   @Prop({ required: true })
   account_number?: string;
@@ -74,6 +77,10 @@ export class Loan {
 
   @Prop({ required: false })
   @IsOptional()
+  rejectionReason?: string;
+
+  @Prop({ required: false })
+  @IsOptional()
   @IsDateString()
   disbursementDate?: Date;
 
@@ -87,6 +94,21 @@ export class Loan {
   @Prop({ required: true })
   @IsNumber()
   totalAmount: number;
+
+  @Prop({
+    type: [
+      {
+        amount: { type: Number, required: true },
+        reference: { type: String, required: true },
+      },
+    ],
+    default: [],
+    _id: false, // Prevents MongoDB from auto-generating _id for each bank object
+  })
+  payments: {
+    amount: number;
+    reference: string;
+  }[];
 }
 
 export const LoanSchema = SchemaFactory.createForClass(Loan);

@@ -10,16 +10,11 @@ import { Model } from 'mongoose';
 import * as bcrypt from 'bcryptjs';
 import { User, UserDocument } from '../schemas/user.schema';
 import { Role } from '../enums/roles.enum';
-import axios from 'axios';
-import { AccountNumberDto } from '../dto/user.dto';
 import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class UsersService {
-  constructor(
-    @InjectModel(User.name) private userModel: Model<UserDocument>,
-    private readonly configService: ConfigService,
-  ) {}
+  constructor(@InjectModel(User.name) private userModel: Model<UserDocument>) {}
 
   async assignRole(
     requestingUser: User,
@@ -39,8 +34,6 @@ export class UsersService {
     if (!newRole) {
       throw new ForbiddenException('new role has to be provided');
     }
-    console.log(newRole);
-    console.log(user);
 
     // Update role
     user.role = newRole;
@@ -50,8 +43,10 @@ export class UsersService {
       user: userRoleChanged,
     };
   }
-  async findUser(userId: any): Promise<any> {
+
+  async findUser(userId: string): Promise<any> {
     const user = await this.userModel.findById(userId).exec();
+
     if (user) {
       const { password, ...userDetails } = user.toObject();
 
@@ -59,6 +54,14 @@ export class UsersService {
     }
 
     throw new NotFoundException('User not found');
+  }
+  async getAllUsers(): Promise<any> {
+    const users = await this.userModel.find({ role: 'user' }).exec();
+
+    if (!users) {
+      throw new NotFoundException('no users found');
+    }
+    return { message: 'all users fetched successfully', users };
   }
 
   async findUserByEmail(email: string) {

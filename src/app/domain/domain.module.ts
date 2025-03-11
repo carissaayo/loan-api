@@ -12,7 +12,7 @@ import { AuthService } from './services/auth.service';
 import { JwtStrategy } from '../auth/jwt.strategy';
 import { UsersService } from './services/user.service';
 import { User, UserSchema } from './schemas/user.schema';
-import { EmailVerifiedGuard, JwtAuthGuard } from '../auth/jwt.guard';
+import { JwtAuthGuard } from '../auth/jwt.guard';
 
 import { RolesGuard } from './middleware/role.guard';
 import { UsersController } from './controllers/user.controller';
@@ -21,6 +21,7 @@ import { LoanController } from './controllers/loan.controller';
 import { Loan, LoanSchema } from './schemas/loan.schema';
 import { PaystackService } from './services/paystack.service';
 import { PaystackController } from './controllers/paystack.controller';
+import { EmailVerifiedGuard } from '../auth/verified.guard';
 
 export const ALL_SERVICES = fs
   .readdirSync(path.join(path.dirname(__filename), 'services'))
@@ -76,9 +77,10 @@ export const ALL_SERVICES = fs
       provide: APP_GUARD,
       useClass: EmailVerifiedGuard,
     },
-    UsersService,
-    JwtStrategy,
     JwtAuthGuard,
+    EmailVerifiedGuard,
+    JwtStrategy,
+    UsersService,
     AuthService,
     LoanService,
     PaystackService,

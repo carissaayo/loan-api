@@ -22,9 +22,6 @@ export class User {
   isVerified: boolean;
 
   @Prop({ default: 0 })
-  loanBalance: number;
-
-  @Prop({ default: 0 })
   ownedAmount: number;
 
   @Prop({ type: [{ type: Types.ObjectId, ref: 'Loan' }] })
