@@ -83,9 +83,8 @@ export class Loan {
   @IsOptional()
   @IsDateString()
   disbursementDate?: Date;
-
-  @Prop({})
-  dueDate?: Date;
+  @Prop({ type: Date, required: true })
+  dueDate: Date;
 
   @Prop({ default: 0 })
   @IsNumber()
@@ -100,6 +99,7 @@ export class Loan {
       {
         amount: { type: Number, required: true },
         reference: { type: String, required: true },
+        paymentDate: { type: Date, required: true },
       },
     ],
     default: [],
@@ -108,6 +108,7 @@ export class Loan {
   payments: {
     amount: number;
     reference: string;
+    paymentDate: Date;
   }[];
 }
 

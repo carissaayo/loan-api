@@ -3,16 +3,15 @@ import {
   NotFoundException,
   BadRequestException,
   ForbiddenException,
-  HttpException,
-  HttpStatus,
   UnauthorizedException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { Loan, LoanDocument, LoanStatus } from '../schemas/loan.schema';
-import { RepaymentDto } from '../dto/loan.dto';
+
 import { User, UserDocument } from '../schemas/user.schema';
 import { PaystackService } from './paystack.service';
+import { EmailService } from './email.service';
 
 @Injectable()
 export class LoanService {
@@ -20,6 +19,7 @@ export class LoanService {
     @InjectModel(Loan.name) private loanModel: Model<LoanDocument>,
     @InjectModel(User.name) private userModel: Model<UserDocument>,
     private paystackService: PaystackService,
+    private emailService: EmailService,
   ) {}
 
   async requestLoan(
@@ -52,6 +52,8 @@ export class LoanService {
         'You need to complete the existing loan payment',
       );
     }
+    const dueDate = new Date(requestDate);
+    dueDate.setMonth(dueDate.getMonth() + 1);
 
     const loan = new this.loanModel({
       account_number,
@@ -76,6 +78,10 @@ export class LoanService {
     await loan.save();
 
     await user.save();
+    const message = `A loan  of ${totalAmount} has been requested by you. In case you didn't make the request, kindly reach out to our customer service to get it rejected`;
+    const title = `A loan request of ${totalAmount} has been made by you`;
+
+    await this.emailService.sendEmail(user.email, title, message);
 
     return { message: 'Loan request has been made', loan };
   }
@@ -108,6 +114,8 @@ export class LoanService {
   async approveLoan(req: any, loanId: string): Promise<any> {
     const loan = await this.loanModel.findById(loanId);
     if (!loan) throw new NotFoundException('Loan not found');
+    const user = await this.userModel.findById(loan.userId);
+    if (!user) throw new NotFoundException('User not found');
     if (
       loan.status !== LoanStatus.IN_REVIEW &&
       loan.status !== LoanStatus.REJECTED
@@ -119,6 +127,11 @@ export class LoanService {
     loan.approvalDate = new Date();
     loan.rejectedBy = undefined;
     loan.rejectionDate = undefined;
+
+    const title = `Your loan has been approved`;
+    const message = `Congratulations, your loan request has been approved. The fund will soon be disbursed into your account`;
+
+    await this.emailService.sendEmail(user.email, title, message);
     loan.save();
     return { message: 'Loan has been approved', loan };
   }
@@ -130,6 +143,8 @@ export class LoanService {
   ): Promise<any> {
     const loan = await this.loanModel.findById(loanId);
     if (!loan) throw new NotFoundException('Loan not found');
+    const user = await this.userModel.findById(loan.userId);
+    if (!user) throw new NotFoundException('User not found');
     if (
       loan.status !== LoanStatus.IN_REVIEW &&
       loan.status !== LoanStatus.APPROVED
@@ -142,6 +157,11 @@ export class LoanService {
     loan.approvedBy = undefined;
     loan.approvalDate = undefined;
     loan.rejectionReason = rejectionReason;
+
+    const title = `Your loan request has been rejected`;
+    const message = `I'm sorry to inform you that your loan request has been rejected. Reach out to  our customer service to find out more or you can apply for a new loan `;
+
+    await this.emailService.sendEmail(user.email, title, message);
 
     await loan.save();
     return { message: 'Loan has been rejected', loan };
@@ -163,6 +183,8 @@ export class LoanService {
 
     loan.status = LoanStatus.DISBURSED;
     loan.disbursementDate = new Date();
+    const dueDate = new Date(loan.disbursementDate);
+    dueDate.setMonth(dueDate.getMinutes() + 30);
     loan.disbursedBy = req.user.userId;
     const recipient = user.banks.filter(
       (bank) => bank.account_number === loan.account_number,
@@ -182,6 +204,10 @@ export class LoanService {
     await loan.save();
     await user.save();
 
+    const title = `Congrats, funds has been disbursed for your loan`;
+    const message = `I'm happy to inform you that your account has been credited. Try to make payment before the due date, to avoid further penalties`;
+
+    await this.emailService.sendEmail(user.email, title, message);
     return { message: 'Funds has been disbursed for this loan', user };
   }
 
@@ -207,6 +233,12 @@ export class LoanService {
     );
     loan.reference = response.data.reference;
     await loan.save();
+    const title = `Your payment has been initiated`;
+    const message = `Try and complete your payment, so it can be confirmed.
+      \n\nHere is the url ${response.data.authorization_url}
+      `;
+
+    await this.emailService.sendEmail(user.email, title, message);
     return {
       message: 'Payment link generated',
       response,
@@ -239,20 +271,33 @@ export class LoanService {
       throw new UnauthorizedException("You haven't completed the payment");
     }
     if (response.data.status === 'success') {
-      // Math.max(user.ownedAmount - amount, 0);
       user.ownedAmount -= amount;
       loan.amountPaid += amount;
       loan.remainingBalance -= amount;
-      const newPayment = { amount, reference: loan.reference };
+      const paymentDate = new Date();
+      const newPayment = { amount, reference: loan.reference, paymentDate };
       loan.payments.push(newPayment);
       loan.reference = undefined;
+
+      // set new Due Date
+      if (loan.totalAmount > loan.amountPaid) {
+        const currentDueDate = loan.dueDate || new Date(); // Ensure dueDate is set
+        const nextDueDate = new Date(currentDueDate);
+        nextDueDate.setMinutes(nextDueDate.getMinutes() + 30);
+        loan.dueDate = nextDueDate;
+      }
+
+      // if loan has been completed
       if (loan.totalAmount <= loan.amountPaid) {
         loan.status = LoanStatus.PAID;
-        // const formattedLoanId= new Types.ObjectId(loanId)
       }
     }
     await user.save();
     await loan.save();
+    const title = `Your payment has been confirmed`;
+    const message = `A payment of #${amount} has been made. Your new owned balance is now ${loan.remainingBalance}`;
+
+    await this.emailService.sendEmail(user.email, title, message);
 
     return {
       message: 'Payment has been confirmed',

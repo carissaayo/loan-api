@@ -22,6 +22,9 @@ import { Loan, LoanSchema } from './schemas/loan.schema';
 import { PaystackService } from './services/paystack.service';
 import { PaystackController } from './controllers/paystack.controller';
 import { EmailVerifiedGuard } from '../auth/verified.guard';
+import { LoanReminderService } from './services/reminder.service';
+import { LoanCronService } from './services/loan-cron.service';
+import { EmailService } from './services/email.service';
 
 export const ALL_SERVICES = fs
   .readdirSync(path.join(path.dirname(__filename), 'services'))
@@ -84,7 +87,17 @@ export const ALL_SERVICES = fs
     AuthService,
     LoanService,
     PaystackService,
+    LoanReminderService,
+    LoanCronService,
+    EmailService,
   ],
-  exports: [UsersService, LoanService, PaystackService],
+  exports: [
+    UsersService,
+    LoanService,
+    PaystackService,
+    LoanReminderService,
+    LoanCronService,
+    EmailService,
+  ],
 })
 export class DomainModule {}

@@ -10,11 +10,11 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import * as bcrypt from 'bcryptjs';
 import { JwtService } from '@nestjs/jwt';
-import * as nodemailer from 'nodemailer';
 
 import { User, UserDocument } from '../schemas/user.schema';
-import { LoginDto, RegisterDto } from '../dto/auth.dto';
+import { LoginDto } from '../dto/auth.dto';
 import { ConfigService } from '@nestjs/config';
+import { EmailService } from './email.service';
 
 @Injectable()
 export class AuthService {
@@ -22,6 +22,7 @@ export class AuthService {
     @InjectModel(User.name) private readonly userModel: Model<UserDocument>,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
+    private emailService: EmailService,
   ) {}
 
   async register(
@@ -54,7 +55,7 @@ export class AuthService {
       // Generate a verification token
       const token = this.jwtService.sign({ email }, { expiresIn: '1d' });
 
-      await this.sendVerificationEmail(email, token);
+      await this.emailService.sendVerificationEmail(email, token);
 
       return {
         message:
@@ -111,35 +112,6 @@ export class AuthService {
     return { accessToken, userDetails };
   }
 
-  async sendVerificationEmail(email: string, token: string) {
-    const transporter = nodemailer.createTransport({
-      service: 'gmail',
-      auth: {
-        user: this.configService.get<string>('EMAIL_USERNAME'),
-        pass: this.configService.get<string>('EMAIL_PASSWORD'),
-      },
-    });
-
-    const verificationLink = `${this.configService.get<string>('APP_URL')}/auth/verify-email?token=${token}`;
-
-    const mailOptions = {
-      from: this.configService.get<string>('EMAIL_USERNAME'),
-      to: email,
-      subject: 'Email Verification',
-      text: `Click the link below to verify your email:\n\n${verificationLink}`,
-    };
-
-    try {
-      await transporter.sendMail(mailOptions);
-      console.log('Email sent successfully!'); // Debug log
-    } catch (error) {
-      console.error('Error sending email:', error); // Debug log
-      throw new InternalServerErrorException(
-        'Failed to send verification email',
-      );
-    }
-  }
-
   async resendVerificationEmail(email: string): Promise<string> {
     const user = await this.userModel.findOne({ email });
     if (!user) {
@@ -156,7 +128,8 @@ export class AuthService {
       { secret: this.configService.get<string>('JWT_SECRET'), expiresIn: '1d' },
     );
 
-    await this.sendVerificationEmail(user.email, verificationToken);
+    await this.emailService.sendVerificationEmail(email, verificationToken);
+
     return 'Verification email resent successfully!';
   }
 
@@ -184,12 +157,4 @@ export class AuthService {
       throw new BadRequestException('Invalid or expired token');
     }
   }
-
-  // async sendOtp(phone: string): Promise<any> {
-  //   return await this.twilioService.sendOTP(phone);
-  // }
-
-  // async verifyOTP(phone: string, code: string): Promise<any> {
-  //   return await this.twilioService.verifyOTP(phone, code);
-  // }
 }
