@@ -46,6 +46,7 @@ export class LoanReminderService {
       async (job) => {
         const { loanId } = job.data;
         const loan = await this.loanModel.findById(loanId);
+
         if (!loan) return;
 
         const user = await this.userModel.findById(loan.userId);
@@ -56,7 +57,8 @@ export class LoanReminderService {
           // Increase ownedAmount by 30%
           const penalty = loan.totalAmount * 0.3;
           user.ownedAmount += penalty;
-          loan.dueDate.setMinutes(loan.dueDate.getMinutes() + 30); // Move due date to next 30 minutes
+          loan.totalAmount += penalty;
+          loan.dueDate.setMinutes(loan.dueDate.getMinutes() + 10); // Move due date to next 30 minutes
           const message = `Dear ${user.name}, your loan payment is overdue and has been increased by 30%. Please pay ASAP to prevent further penalties.`;
 
           await this.emailService.sendEmail(
@@ -66,6 +68,7 @@ export class LoanReminderService {
           );
           await user.save();
           await loan.save();
+          console.log(``);
 
           this.logger.log(
             `Penalty applied to user ${user._id}. New due date: ${loan.dueDate}`,

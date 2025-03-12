@@ -25,6 +25,7 @@ import { EmailVerifiedGuard } from '../auth/verified.guard';
 import { LoanReminderService } from './services/reminder.service';
 import { LoanCronService } from './services/loan-cron.service';
 import { EmailService } from './services/email.service';
+import { ScheduleModule } from '@nestjs/schedule';
 
 export const ALL_SERVICES = fs
   .readdirSync(path.join(path.dirname(__filename), 'services'))
@@ -59,6 +60,7 @@ export const ALL_SERVICES = fs
       { name: User.name, schema: UserSchema },
       { name: Loan.name, schema: LoanSchema },
     ]),
+    ScheduleModule.forRoot(),
   ],
 
   controllers: [

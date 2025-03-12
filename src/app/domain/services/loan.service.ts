@@ -64,6 +64,7 @@ export class LoanService {
       userId: req.userId,
       status: LoanStatus.PENDING,
       requestDate,
+      dueDate,
     });
 
     const doesAccountNumberMatches = user.banks.filter(
@@ -184,7 +185,8 @@ export class LoanService {
     loan.status = LoanStatus.DISBURSED;
     loan.disbursementDate = new Date();
     const dueDate = new Date(loan.disbursementDate);
-    dueDate.setMonth(dueDate.getMinutes() + 30);
+    dueDate.setMinutes(dueDate.getMinutes() + 30);
+    loan.dueDate = dueDate;
     loan.disbursedBy = req.user.userId;
     const recipient = user.banks.filter(
       (bank) => bank.account_number === loan.account_number,
@@ -283,7 +285,7 @@ export class LoanService {
       if (loan.totalAmount > loan.amountPaid) {
         const currentDueDate = loan.dueDate || new Date(); // Ensure dueDate is set
         const nextDueDate = new Date(currentDueDate);
-        nextDueDate.setMinutes(nextDueDate.getMinutes() + 30);
+        nextDueDate.setMinutes(nextDueDate.getMinutes() + 10);
         loan.dueDate = nextDueDate;
       }
 

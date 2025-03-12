@@ -6,7 +6,7 @@ import { LoanReminderService } from './reminder.service';
 export class LoanCronService {
   constructor(private readonly loanReminderService: LoanReminderService) {}
 
-  @Cron('0/30 * * * *') // Runs every 30 minutes
+  @Cron('0/10 * * * *') // Runs every 30 minutes
   async handleLoanReminders() {
     await this.loanReminderService.scheduleReminders();
   }
