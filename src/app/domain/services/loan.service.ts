@@ -7,7 +7,12 @@ import {
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
-import { Loan, LoanDocument, LoanStatus } from '../schemas/loan.schema';
+import {
+  Loan,
+  LoanDocument,
+  LoanStatus,
+  PaymentMethod,
+} from '../schemas/loan.schema';
 
 import { User, UserDocument } from '../schemas/user.schema';
 import { PaystackService } from './paystack.service';
@@ -30,13 +35,7 @@ export class LoanService {
     paymentMethod: string,
     req: any,
   ): Promise<any> {
-    if (
-      !account_number ||
-      !amount ||
-      !repaymentPeriod ||
-      !totalAmount ||
-      !req
-    ) {
+    if (!account_number || !amount || !totalAmount || !req) {
       throw new BadRequestException('Please provide all the requireds');
     }
     if (!req.userId) {
@@ -60,7 +59,7 @@ export class LoanService {
       amount,
       repaymentPeriod,
       totalAmount,
-      paymentMethod: paymentMethod && paymentMethod,
+      paymentMethod,
       userId: req.userId,
       status: LoanStatus.PENDING,
       requestDate,
@@ -201,6 +200,7 @@ export class LoanService {
 
     if (transferFund.data.status === 'success') {
       user.ownedAmount += loan.totalAmount;
+      loan.remainingBalance = loan.totalAmount;
     }
 
     await loan.save();
@@ -228,7 +228,14 @@ export class LoanService {
     if (!user) {
       throw new NotFoundException('User not found');
     }
-
+    if (
+      loan.paymentMethod === PaymentMethod.FULL_PAYMENT &&
+      loan.totalAmount !== amount
+    ) {
+      throw new BadRequestException(
+        'The amount is not up to the amount you ought to pay',
+      );
+    }
     const response = await this.paystackService.initiateRepayment(
       user.email,
       amount,
@@ -237,17 +244,21 @@ export class LoanService {
     await loan.save();
     const title = `Your payment has been initiated`;
     const message = `Try and complete your payment, so it can be confirmed.
+    \n\nHere is your reference code.
       \n\nHere is the url ${response.data.authorization_url}
       `;
 
     await this.emailService.sendEmail(user.email, title, message);
     return {
-      message: 'Payment link generated',
-      response,
+      message:
+        'The generated payment link has been sent to your email to confirm payment',
     };
   }
 
-  async verifyRepayment(loanId: string, req: any) {
+  async verifyRepayment(loanId: string, reference: string, req: any) {
+    if (!reference) {
+      throw new ForbiddenException('reference code is required');
+    }
     const loan = await this.loanModel.findById(loanId);
     if (!loan) throw new NotFoundException('Loan not found');
 
@@ -261,45 +272,57 @@ export class LoanService {
     if (!user) {
       throw new NotFoundException('User not found');
     }
-    if (loan.reference === undefined) {
+
+    if (loan.reference === undefined || loan.reference !== reference) {
       throw new ForbiddenException(
         'payment needs to be made so the reference will be available',
       );
     }
 
-    const response = await this.paystackService.verifyRepayment(loan.reference);
+    const response = await this.paystackService.verifyRepayment(reference);
     const amount = response.data.amount / 100;
     if (response.data.status === 'abandoned') {
       throw new UnauthorizedException("You haven't completed the payment");
     }
     if (response.data.status === 'success') {
-      user.ownedAmount = Math.max(0, user.ownedAmount - amount);
-      user.ownedAmount -= amount;
-      loan.amountPaid += amount;
-      loan.remainingBalance = Math.max(0, loan.remainingBalance - amount);
       const paymentDate = new Date();
       const newPayment = { amount, reference: loan.reference, paymentDate };
       loan.payments.push(newPayment);
       loan.reference = undefined;
-
-      // set new Due Date
-      if (loan.totalAmount > loan.amountPaid) {
-        const currentDueDate = loan.dueDate || new Date(); // Ensure dueDate is set
-        const nextDueDate = new Date(currentDueDate);
-        nextDueDate.setMinutes(nextDueDate.getMinutes() + 10);
-        loan.dueDate = nextDueDate;
-      }
-      const title = `Your payment has been confirmed`;
-      const message = `A payment of #${amount} has been made. Your new owned balance is now ${loan.remainingBalance}`;
-
-      await this.emailService.sendEmail(user.email, title, message);
-      // if loan has been completed
-      if (loan.totalAmount <= loan.amountPaid) {
+      // IF the payment method is ful-payment at once
+      if (loan.paymentMethod === PaymentMethod.FULL_PAYMENT) {
+        user.ownedAmount = 0;
         loan.status = LoanStatus.PAID;
-        const title = `Your loan repayment is completed`;
-        const message = `You have paid off your loan. You can now make a request for a new loan`;
+        loan.remainingBalance = 0;
+        loan.amountPaid = amount;
+        const title = `Your payment has been confirmed`;
+        const message = `The full payment of your current loan has been confirmed. You can now make a request for a new loan`;
+        await this.emailService.sendEmail(user.email, title, message);
+      } else {
+        // if the payment method is partial payment
+        loan.amountPaid += amount;
+        loan.remainingBalance = Math.max(0, loan.remainingBalance - amount);
+        user.ownedAmount = Math.max(0, user.ownedAmount - amount);
+
+        // set new Due Date
+        if (loan.totalAmount > loan.amountPaid) {
+          const currentDueDate = loan.dueDate || new Date(); // Ensure dueDate is set
+          const nextDueDate = new Date(currentDueDate);
+          nextDueDate.setMinutes(nextDueDate.getMinutes() + 10);
+          loan.dueDate = nextDueDate;
+        }
+        const title = `Your payment has been confirmed`;
+        const message = `A payment of #${amount} has been made. Your new owned balance is now ${loan.remainingBalance}`;
 
         await this.emailService.sendEmail(user.email, title, message);
+        // if loan has been completed
+        if (loan.totalAmount <= loan.amountPaid) {
+          loan.status = LoanStatus.PAID;
+          const title = `Your loan repayment is completed`;
+          const message = `You have paid off your loan. You can now make a request for a new loan`;
+
+          await this.emailService.sendEmail(user.email, title, message);
+        }
       }
     }
     await user.save();

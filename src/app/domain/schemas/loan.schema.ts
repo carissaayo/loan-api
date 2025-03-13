@@ -53,9 +53,6 @@ export class Loan {
   @Prop({ default: 0 })
   remainingBalance: number;
 
-  @Prop({})
-  expectedMonthlyPayment: number;
-
   @Prop({ required: true })
   account_number?: string;
   @Prop({ required: false })

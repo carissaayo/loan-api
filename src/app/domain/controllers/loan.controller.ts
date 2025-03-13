@@ -110,7 +110,8 @@ export class LoanController {
   async verifyRepayment(
     @Param('loanId') loanId: string,
     @Req() req: AuthenticatedRequest,
+    @Body('reference') reference: string,
   ) {
-    return this.loanService.verifyRepayment(loanId, req);
+    return this.loanService.verifyRepayment(loanId, reference, req);
   }
 }

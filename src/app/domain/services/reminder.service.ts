@@ -43,6 +43,26 @@ export class LoanReminderService {
     this.logger.log(`Scheduled ${overdueLoans.length} loan reminders`);
   }
 
+  async scheduleUpcomingPaymentReminders() {
+    // Find loans with due dates within the next 24 hours
+    const now = new Date();
+    const nextDay = new Date();
+    nextDay.setDate(now.getMinutes() + 5); // Set to 24 hours ahead
+
+    const upcomingLoans = await this.loanModel.find({
+      dueDate: { $gte: now, $lte: nextDay },
+      status: LoanStatus.DISBURSED,
+    });
+
+    for (const loan of upcomingLoans) {
+      await this.queue.add('send-upcoming-reminder', { loanId: loan._id });
+    }
+
+    this.logger.log(
+      `Scheduled ${upcomingLoans.length} upcoming loan reminders`,
+    );
+  }
+
   private startWorker() {
     new Worker(
       'loan-reminders',
@@ -61,7 +81,7 @@ export class LoanReminderService {
           const penalty = loan.totalAmount * 0.3;
           user.ownedAmount += penalty;
           loan.totalAmount += penalty;
-          loan.dueDate.setMinutes(loan.dueDate.getMinutes() + 10); // Move due date to next 10 minutes
+
           const message = `Dear ${user.name}, your loan payment is overdue and has been increased by 30%. Please pay ASAP to prevent further penalties.`;
 
           await this.emailService.sendEmail(
@@ -73,9 +93,36 @@ export class LoanReminderService {
           await loan.save();
           console.log(``);
 
-          this.logger.log(
-            `Penalty applied to user ${user._id}. New due date: ${loan.dueDate}`,
+          this.logger.log(`Penalty applied to user ${user._id}.`);
+        }
+      },
+      {
+        connection: {
+          host: this.configService.get<string>('REDIS_HOST'),
+          port: this.configService.get<number>('REDIS_PORT'),
+        },
+      },
+    );
+    new Worker(
+      'loan-reminders',
+      async (job) => {
+        if (job.name === 'send-upcoming-reminder') {
+          const { loanId } = job.data;
+          const loan = await this.loanModel.findById(loanId);
+          if (!loan) return;
+
+          const user = await this.userModel.findById(loan.userId);
+          if (!user) return;
+
+          const message = `Dear ${user.name}, your loan payment is due soon on ${loan.dueDate.toDateString()}. Please make a payment to avoid penalties.`;
+
+          await this.emailService.sendEmail(
+            user.email,
+            'Upcoming Loan Payment Reminder',
+            message,
           );
+
+          this.logger.log(`Upcoming payment reminder sent to user ${user._id}`);
         }
       },
       {
