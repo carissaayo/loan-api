@@ -273,9 +273,10 @@ export class LoanService {
       throw new UnauthorizedException("You haven't completed the payment");
     }
     if (response.data.status === 'success') {
+      user.ownedAmount = Math.max(0, user.ownedAmount - amount);
       user.ownedAmount -= amount;
       loan.amountPaid += amount;
-      loan.remainingBalance -= amount;
+      loan.remainingBalance = Math.max(0, loan.remainingBalance - amount);
       const paymentDate = new Date();
       const newPayment = { amount, reference: loan.reference, paymentDate };
       loan.payments.push(newPayment);
@@ -288,18 +289,21 @@ export class LoanService {
         nextDueDate.setMinutes(nextDueDate.getMinutes() + 10);
         loan.dueDate = nextDueDate;
       }
+      const title = `Your payment has been confirmed`;
+      const message = `A payment of #${amount} has been made. Your new owned balance is now ${loan.remainingBalance}`;
 
+      await this.emailService.sendEmail(user.email, title, message);
       // if loan has been completed
       if (loan.totalAmount <= loan.amountPaid) {
         loan.status = LoanStatus.PAID;
+        const title = `Your loan repayment is completed`;
+        const message = `You have paid off your loan. You can now make a request for a new loan`;
+
+        await this.emailService.sendEmail(user.email, title, message);
       }
     }
     await user.save();
     await loan.save();
-    const title = `Your payment has been confirmed`;
-    const message = `A payment of #${amount} has been made. Your new owned balance is now ${loan.remainingBalance}`;
-
-    await this.emailService.sendEmail(user.email, title, message);
 
     return {
       message: 'Payment has been confirmed',

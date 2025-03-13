@@ -26,6 +26,8 @@ import { LoanReminderService } from './services/reminder.service';
 import { LoanCronService } from './services/loan-cron.service';
 import { EmailService } from './services/email.service';
 import { ScheduleModule } from '@nestjs/schedule';
+import { AnalyticsService } from './services/analytics.service';
+import { AnalyticsController } from './controllers/analytics.controller';
 
 export const ALL_SERVICES = fs
   .readdirSync(path.join(path.dirname(__filename), 'services'))
@@ -68,6 +70,7 @@ export const ALL_SERVICES = fs
     UsersController,
     LoanController,
     PaystackController,
+    AnalyticsController,
   ],
   providers: [
     {
@@ -92,6 +95,7 @@ export const ALL_SERVICES = fs
     LoanReminderService,
     LoanCronService,
     EmailService,
+    AnalyticsService,
   ],
   exports: [
     UsersService,

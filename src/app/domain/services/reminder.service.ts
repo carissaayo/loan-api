@@ -20,7 +20,10 @@ export class LoanReminderService {
     private emailService: EmailService,
   ) {
     this.queue = new Queue('loan-reminders', {
-      connection: { host: 'localhost', port: 6379 },
+      connection: {
+        host: this.configService.get<string>('REDIS_HOST'),
+        port: this.configService.get<number>('REDIS_PORT'),
+      },
     });
 
     // Start processing jobs
@@ -58,7 +61,7 @@ export class LoanReminderService {
           const penalty = loan.totalAmount * 0.3;
           user.ownedAmount += penalty;
           loan.totalAmount += penalty;
-          loan.dueDate.setMinutes(loan.dueDate.getMinutes() + 10); // Move due date to next 30 minutes
+          loan.dueDate.setMinutes(loan.dueDate.getMinutes() + 10); // Move due date to next 10 minutes
           const message = `Dear ${user.name}, your loan payment is overdue and has been increased by 30%. Please pay ASAP to prevent further penalties.`;
 
           await this.emailService.sendEmail(

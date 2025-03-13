@@ -50,8 +50,11 @@ export class Loan {
   @Prop({ type: Types.ObjectId, ref: 'User' })
   disbursedBy?: Types.ObjectId;
 
-  @Prop({})
+  @Prop({ default: 0 })
   remainingBalance: number;
+
+  @Prop({})
+  expectedMonthlyPayment: number;
 
   @Prop({ required: true })
   account_number?: string;
