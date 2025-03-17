@@ -33,6 +33,7 @@ export class LoanService {
     repaymentPeriod: number,
     totalAmount: number,
     paymentMethod: string,
+    monthlyPayment: number,
     req: any,
   ): Promise<any> {
     if (!account_number || !amount || !totalAmount || !req) {
@@ -52,7 +53,8 @@ export class LoanService {
       );
     }
     const dueDate = new Date(requestDate);
-    dueDate.setMonth(dueDate.getMonth() + 1);
+    dueDate.setMinutes(dueDate.getMinutes() + 10);
+    // dueDate.setMonth(dueDate.getMonth() + 1);
 
     const loan = new this.loanModel({
       account_number,
@@ -64,6 +66,7 @@ export class LoanService {
       status: LoanStatus.PENDING,
       requestDate,
       dueDate,
+      monthlyPayment,
     });
 
     const doesAccountNumberMatches = user.banks.filter(
@@ -184,7 +187,7 @@ export class LoanService {
     loan.status = LoanStatus.DISBURSED;
     loan.disbursementDate = new Date();
     const dueDate = new Date(loan.disbursementDate);
-    dueDate.setMinutes(dueDate.getMinutes() + 30);
+    dueDate.setMinutes(dueDate.getMinutes() + 10);
     loan.dueDate = dueDate;
     loan.disbursedBy = req.user.userId;
     const recipient = user.banks.filter(
@@ -210,14 +213,14 @@ export class LoanService {
     const message = `I'm happy to inform you that your account has been credited. Try to make payment before the due date, to avoid further penalties`;
 
     await this.emailService.sendEmail(user.email, title, message);
-    return { message: 'Funds has been disbursed for this loan', user };
+    return { message: 'Funds has been disbursed for this loan', loan };
   }
 
   async startRepayment(loanId: string, req: any, amount: number) {
     const loan = await this.loanModel.findById(loanId);
     if (!loan) throw new NotFoundException('Loan not found');
 
-    if (loan.status === LoanStatus.PAID) {
+    if (loan.isCompleted) {
       throw new NotFoundException('this loan repayment is complete');
     }
 
@@ -236,15 +239,28 @@ export class LoanService {
         'The amount is not up to the amount you ought to pay',
       );
     }
+
+    if (
+      loan.paymentMethod === PaymentMethod.PARTIAL_PAYMENT &&
+      (loan.monthlyPayment !== amount ||
+        loan.remainingBalance <= amount ||
+        loan.remainingBalance >= amount)
+    ) {
+      throw new BadRequestException(
+        'The amount is not  the amount you ought to pay',
+      );
+    }
+
     const response = await this.paystackService.initiateRepayment(
       user.email,
       amount,
     );
     loan.reference = response.data.reference;
+    loan.authorization_url = response.data.authorization_url;
     await loan.save();
     const title = `Your payment has been initiated`;
     const message = `Try and complete your payment, so it can be confirmed.
-    \n\nHere is your reference code.
+    \n\nHere is your reference code: ${response.data.reference}.
       \n\nHere is the url ${response.data.authorization_url}
       `;
 
@@ -252,6 +268,7 @@ export class LoanService {
     return {
       message:
         'The generated payment link has been sent to your email to confirm payment',
+      response,
     };
   }
 
@@ -262,7 +279,7 @@ export class LoanService {
     const loan = await this.loanModel.findById(loanId);
     if (!loan) throw new NotFoundException('Loan not found');
 
-    if (loan.status === LoanStatus.PAID) {
+    if (loan.isCompleted) {
       throw new NotFoundException('this loan repayment is complete');
     }
     if (loan.userId !== req.user.userId) {
@@ -292,7 +309,7 @@ export class LoanService {
       // IF the payment method is ful-payment at once
       if (loan.paymentMethod === PaymentMethod.FULL_PAYMENT) {
         user.ownedAmount = 0;
-        loan.status = LoanStatus.PAID;
+        loan.isCompleted = true;
         loan.remainingBalance = 0;
         loan.amountPaid = amount;
         const title = `Your payment has been confirmed`;
@@ -308,8 +325,12 @@ export class LoanService {
         if (loan.totalAmount > loan.amountPaid) {
           const currentDueDate = loan.dueDate || new Date(); // Ensure dueDate is set
           const nextDueDate = new Date(currentDueDate);
-          nextDueDate.setMinutes(nextDueDate.getMinutes() + 10);
+          nextDueDate.setMinutes(nextDueDate.getMinutes() + 30);
           loan.dueDate = nextDueDate;
+        }
+
+        if (loan.totalAmount < loan.amountPaid) {
+          loan.isCompleted = true;
         }
         const title = `Your payment has been confirmed`;
         const message = `A payment of #${amount} has been made. Your new owned balance is now ${loan.remainingBalance}`;

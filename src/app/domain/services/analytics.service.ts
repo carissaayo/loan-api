@@ -22,6 +22,7 @@ export class AnalyticsService {
       {
         $group: {
           _id: null,
+
           totalOutstanding: { $sum: { $abs: '$ownedAmount' } },
         },
       },
@@ -33,6 +34,7 @@ export class AnalyticsService {
     const overdueLoans = await this.loanModel.find({
       dueDate: { $lt: new Date() }, // Loans past their due date
       status: LoanStatus.DISBURSED,
+      isCompleted: false,
     });
 
     const userIds = overdueLoans.map((loan) => loan.userId);

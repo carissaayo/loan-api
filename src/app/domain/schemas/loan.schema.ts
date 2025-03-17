@@ -29,6 +29,9 @@ export class Loan {
   @Prop({})
   reference?: string;
 
+  @Prop({})
+  authorization_url?: string;
+
   @Prop({ required: true })
   repaymentPeriod: number;
 
@@ -65,6 +68,10 @@ export class Loan {
   @IsDateString()
   reviewedDate?: Date;
 
+  @Prop({ default: false })
+  @IsOptional()
+  isCompleted: boolean;
+
   @Prop({ required: false })
   @IsOptional()
   @IsDateString()
@@ -93,6 +100,10 @@ export class Loan {
   @Prop({ required: true })
   @IsNumber()
   totalAmount: number;
+
+  @Prop({})
+  @IsNumber()
+  monthlyPayment?: number;
 
   @Prop({
     type: [

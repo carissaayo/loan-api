@@ -31,7 +31,8 @@ export class LoanController {
     @Body('amount') amount: number,
     @Body('totalAmount') totalAmount: number,
     @Body('repaymentPeriod') repaymentPeriod: number,
-    @Body(' paymentMethod') paymentMethod: string,
+    @Body('paymentMethod') paymentMethod: string,
+    @Body('monthlyPayment') monthlyPayment: number,
   ) {
     return this.loanService.requestLoan(
       account_number,
@@ -39,6 +40,7 @@ export class LoanController {
       repaymentPeriod,
       totalAmount,
       paymentMethod,
+      monthlyPayment,
       req.user,
     );
   }
