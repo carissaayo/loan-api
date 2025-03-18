@@ -28,6 +28,7 @@ import { EmailService } from './services/email.service';
 import { ScheduleModule } from '@nestjs/schedule';
 import { AnalyticsService } from './services/analytics.service';
 import { AnalyticsController } from './controllers/analytics.controller';
+import { TermiiService } from './services/termii.service';
 
 export const ALL_SERVICES = fs
   .readdirSync(path.join(path.dirname(__filename), 'services'))
@@ -96,6 +97,7 @@ export const ALL_SERVICES = fs
     LoanCronService,
     EmailService,
     AnalyticsService,
+    TermiiService,
   ],
   exports: [
     UsersService,

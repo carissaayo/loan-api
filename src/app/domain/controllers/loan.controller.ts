@@ -19,7 +19,7 @@ import { EmailVerifiedGuard } from 'src/app/auth/verified.guard';
 import { CreateLoanDto } from '../dto/loan.dto';
 
 @Controller('loans')
-@UseGuards(JwtAuthGuard, RolesGuard, EmailVerifiedGuard)
+@UseGuards(RolesGuard, EmailVerifiedGuard)
 export class LoanController {
   constructor(private readonly loanService: LoanService) {}
 

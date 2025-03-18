@@ -11,10 +11,14 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { AuthService } from '../services/auth.service';
-import { LoginDto, RegisterDto } from '../dto/auth.dto';
+import { LoginDto } from '../dto/auth.dto';
 import { JwtAuthGuard } from 'src/app/auth/jwt.guard';
 
 import { Public } from '../middleware/public.decorator';
+import { TermiiService } from '../services/termii.service';
+import { RolesGuard } from '../middleware/role.guard';
+import { Role } from '../enums/roles.enum';
+import { Roles } from '../middleware/role.decorator';
 
 @Controller('auth')
 @UsePipes(
@@ -24,7 +28,10 @@ import { Public } from '../middleware/public.decorator';
   }),
 )
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly termiiService: TermiiService,
+  ) {}
 
   @Public()
   @Post('register')
@@ -46,6 +53,7 @@ export class AuthController {
       body.name,
     );
   }
+
   @Public()
   @Post('login')
   async login(@Body() loginDto: LoginDto) {
@@ -53,14 +61,19 @@ export class AuthController {
     if (!token) throw new UnauthorizedException('Invalid credentials');
     return token;
   }
-
+  @Post('sender-id/request')
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN)
+  async requestSenderId() {
+    const response = await this.termiiService.requestForSenderId();
+    return { message: 'request sent', response };
+  }
   @Public()
   @Get('verify-email')
   async verifyEmail(@Query('token') token: string) {
     return await this.authService.verifyEmail(token);
   }
 
-  @UseGuards(JwtAuthGuard)
   @Post('resend-verification')
   async resendVerification(@Body('email') email: string) {
     try {
