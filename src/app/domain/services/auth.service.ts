@@ -40,7 +40,6 @@ export class AuthService {
       throw new UnauthorizedException('Passwords do not match');
     }
 
-    // Hash password before storing in MongoDB
     const hashedPassword = await bcrypt.hash(password, 10);
 
     try {
@@ -64,7 +63,6 @@ export class AuthService {
           email,
           phone,
           name,
-
           isVerified,
           role,
           _id,
@@ -78,7 +76,6 @@ export class AuthService {
   async login(loginDto: LoginDto) {
     const { email, password } = loginDto;
 
-    // Find user in MongoDB using Firebase UID
     const user = await this.userModel.findOne({
       email,
     });

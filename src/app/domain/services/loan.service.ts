@@ -120,16 +120,16 @@ export class LoanService {
     const user = await this.userModel.findById(loan.userId);
     if (!user) throw new NotFoundException('User not found');
     if (
-      loan.status !== LoanStatus.IN_REVIEW &&
-      loan.status !== LoanStatus.REJECTED
+      loan.status !== LoanStatus.IN_REVIEW
+      //  &&loan.status !== LoanStatus.REJECTED
     ) {
       throw new BadRequestException('Loan cannot be approved at this stage');
     }
     loan.status = LoanStatus.APPROVED;
     loan.approvedBy = req.user.userId;
     loan.approvalDate = new Date();
-    loan.rejectedBy = undefined;
-    loan.rejectionDate = undefined;
+    // loan.rejectedBy = undefined;
+    // loan.rejectionDate = undefined;
 
     const title = `Your loan has been approved`;
     const message = `Congratulations, your loan request has been approved. The fund will soon be disbursed into your account`;
@@ -149,16 +149,16 @@ export class LoanService {
     const user = await this.userModel.findById(loan.userId);
     if (!user) throw new NotFoundException('User not found');
     if (
-      loan.status !== LoanStatus.IN_REVIEW &&
-      loan.status !== LoanStatus.APPROVED
+      loan.status !== LoanStatus.IN_REVIEW
+      // &&loan.status !== LoanStatus.APPROVED
     ) {
       throw new BadRequestException('Loan cannot be rejected at this stage');
     }
     loan.status = LoanStatus.REJECTED;
     loan.rejectedBy = req.user.userId;
     loan.rejectionDate = new Date();
-    loan.approvedBy = undefined;
-    loan.approvalDate = undefined;
+    // loan.approvedBy = undefined;
+    // loan.approvalDate = undefined;
     loan.rejectionReason = rejectionReason;
 
     const title = `Your loan request has been rejected`;
@@ -224,12 +224,12 @@ export class LoanService {
       throw new NotFoundException('this loan repayment is complete');
     }
 
-    if (loan.userId !== req.user.userId) {
-      throw new NotFoundException('You can only repay your loan');
-    }
     const user = await this.userModel.findById(req.user.userId);
     if (!user) {
       throw new NotFoundException('User not found');
+    }
+    if (loan.userId !== user._id) {
+      throw new NotFoundException('You can only repay your loan');
     }
     if (
       loan.paymentMethod === PaymentMethod.FULL_PAYMENT &&
@@ -244,7 +244,7 @@ export class LoanService {
       loan.paymentMethod === PaymentMethod.PARTIAL_PAYMENT &&
       (loan.monthlyPayment !== amount ||
         loan.remainingBalance <= amount ||
-        loan.remainingBalance >= amount)
+        loan.remainingBalance !== amount)
     ) {
       throw new BadRequestException(
         'The amount is not  the amount you ought to pay',
@@ -323,13 +323,13 @@ export class LoanService {
 
         // set new Due Date
         if (loan.totalAmount > loan.amountPaid) {
-          const currentDueDate = loan.dueDate || new Date(); // Ensure dueDate is set
+          const currentDueDate = loan.dueDate || new Date();
           const nextDueDate = new Date(currentDueDate);
-          nextDueDate.setMinutes(nextDueDate.getMinutes() + 30);
+          nextDueDate.setMinutes(nextDueDate.getMinutes() + 10);
           loan.dueDate = nextDueDate;
         }
 
-        if (loan.totalAmount < loan.amountPaid) {
+        if (loan.totalAmount <= loan.amountPaid) {
           loan.isCompleted = true;
         }
         const title = `Your payment has been confirmed`;
@@ -338,7 +338,7 @@ export class LoanService {
         await this.emailService.sendEmail(user.email, title, message);
         // if loan has been completed
         if (loan.totalAmount <= loan.amountPaid) {
-          loan.status = LoanStatus.PAID;
+          loan.isCompleted = true;
           const title = `Your loan repayment is completed`;
           const message = `You have paid off your loan. You can now make a request for a new loan`;
 

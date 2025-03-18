@@ -33,7 +33,7 @@ export class LoanReminderService {
   async scheduleReminders() {
     const overdueLoans = await this.loanModel.find({
       dueDate: { $lte: new Date() },
-      status: LoanStatus.DISBURSED, // Ensure we only process active loans
+      status: LoanStatus.DISBURSED,
       isCompleted: false,
     });
 
@@ -45,7 +45,6 @@ export class LoanReminderService {
   }
 
   async scheduleUpcomingPaymentReminders() {
-    // Find loans with due dates within the next 5 minutes
     const now = new Date();
     const nextDay = new Date();
     nextDay.setMinutes(now.getMinutes() + 5); // Set to 5 minutes ahead
