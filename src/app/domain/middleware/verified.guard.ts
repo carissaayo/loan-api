@@ -4,7 +4,7 @@ import {
   ForbiddenException,
   CanActivate,
 } from '@nestjs/common';
-import { IS_PUBLIC_KEY } from '../domain/middleware/public.decorator';
+import { IS_PUBLIC_KEY } from './public.decorator';
 import { Reflector } from '@nestjs/core';
 
 @Injectable()

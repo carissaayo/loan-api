@@ -10,15 +10,14 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { AuthService } from '../services/auth.service';
-import { LoginDto } from '../dto/auth.dto';
-import { JwtAuthGuard } from 'src/app/auth/jwt.guard';
+import { AuthService } from './auth.service';
+import { LoginDto } from '../domain/dto/auth.dto';
 
-import { Public } from '../middleware/public.decorator';
-import { TermiiService } from '../services/termii.service';
-import { RolesGuard } from '../middleware/role.guard';
-import { Role } from '../enums/roles.enum';
-import { Roles } from '../middleware/role.decorator';
+import { Public } from '../domain/middleware/public.decorator';
+import { TermiiService } from '../domain/services/termii.service';
+import { RolesGuard } from '../domain/middleware/role.guard';
+import { Role } from '../domain/enums/roles.enum';
+import { Roles } from '../domain/middleware/role.decorator';
 
 @Controller('auth')
 @UsePipes(

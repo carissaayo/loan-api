@@ -10,7 +10,7 @@ import {
   Patch,
 } from '@nestjs/common';
 
-import { JwtAuthGuard } from 'src/app/auth/jwt.guard';
+import { JwtAuthGuard } from 'src/app/domain/middleware/jwt.guard';
 import {
   AuthenticatedRequest,
   RolesGuard,
@@ -18,7 +18,7 @@ import {
 import { Roles } from '../domain/middleware/role.decorator';
 import { Role } from '../domain/enums/roles.enum';
 import { LoanService } from './loan.service';
-import { EmailVerifiedGuard } from 'src/app/auth/verified.guard';
+import { EmailVerifiedGuard } from 'src/app/domain/middleware/verified.guard';
 
 @Controller('loans')
 @UseGuards(RolesGuard, EmailVerifiedGuard)

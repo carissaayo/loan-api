@@ -1,47 +1,27 @@
-import { Module, Type } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { JwtModule } from '@nestjs/jwt';
-import * as fs from 'fs';
-import * as path from 'path';
-
-import { APP_GUARD } from '@nestjs/core';
-import { MongooseModule } from '@nestjs/mongoose';
-
-import { AuthController } from './controllers/auth.controller';
-import { AuthService } from './services/auth.service';
-import { JwtStrategy } from '../auth/jwt.strategy';
-
-import { User, UserSchema } from '../user/user.schema';
-import { JwtAuthGuard } from '../auth/jwt.guard';
-
-import { RolesGuard } from './middleware/role.guard';
-import { UsersController } from '../user/user.controller';
-import { LoanService } from '../loan/loan.service';
-import { LoanController } from '../loan/loan.controller';
-import { Loan, LoanSchema } from '../loan/loan.schema';
-import { PaystackService } from '../paystack/paystack.service';
-import { PaystackController } from '../paystack/paystack.controller';
-import { EmailVerifiedGuard } from '../auth/verified.guard';
-import { LoanReminderService } from './services/reminder.service';
-import { LoanCronService } from './services/loan-cron.service';
-import { EmailService } from '../email/email.service';
 import { ScheduleModule } from '@nestjs/schedule';
-import { AnalyticsService } from './services/analytics.service';
-import { AnalyticsController } from './controllers/analytics.controller';
-import { TermiiService } from './services/termii.service';
+import { MongooseModule } from '@nestjs/mongoose';
+import { JwtModule } from '@nestjs/jwt';
+import { APP_GUARD } from '@nestjs/core';
+
+import { JwtStrategy } from './middleware/jwt.strategy';
+import { User, UserSchema } from '../user/user.schema';
+import { JwtAuthGuard } from './middleware/jwt.guard';
+import { RolesGuard } from './middleware/role.guard';
+import { Loan, LoanSchema } from '../loan/loan.schema';
+
 import { LoanModule } from '../loan/loan.module';
 import { UserModule } from '../user/user.module';
 import { EmailModule } from '../email/email.module';
+import { PaystackModule } from '../paystack/paystack.module';
+import { AuthModule } from '../auth/auth.module';
 
-export const ALL_SERVICES = fs
-  .readdirSync(path.join(path.dirname(__filename), 'services'))
-  .filter(
-    (file) =>
-      (path.extname(file) === '.js' || path.extname(file) === '.ts') &&
-      !file.endsWith('.d.ts'),
-  )
-  .filter((file) => file.indexOf('.spec') === -1)
-  .map((file) => require(`./services/${file}`).default as Type<any>);
+import { EmailVerifiedGuard } from './middleware/verified.guard';
+import { LoanReminderService } from './services/reminder.service';
+import { LoanCronService } from './services/loan-cron.service';
+import { AnalyticsService } from './services/analytics.service';
+import { AnalyticsController } from './controllers/analytics.controller';
 
 @Module({
   imports: [
@@ -70,9 +50,11 @@ export const ALL_SERVICES = fs
     LoanModule,
     UserModule,
     EmailModule,
+    PaystackModule,
+    AuthModule,
   ],
 
-  controllers: [AuthController, PaystackController, AnalyticsController],
+  controllers: [AnalyticsController],
   providers: [
     {
       provide: APP_GUARD,
@@ -89,19 +71,10 @@ export const ALL_SERVICES = fs
     JwtAuthGuard,
     EmailVerifiedGuard,
     JwtStrategy,
-    AuthService,
-    PaystackService,
     LoanReminderService,
     LoanCronService,
-    EmailService,
     AnalyticsService,
-    TermiiService,
   ],
-  exports: [
-    PaystackService,
-    LoanReminderService,
-    LoanCronService,
-    EmailService,
-  ],
+  exports: [],
 })
 export class DomainModule {}

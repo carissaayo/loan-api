@@ -12,7 +12,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { PaystackService } from './paystack.service';
-import { JwtAuthGuard } from 'src/app/auth/jwt.guard';
+import { JwtAuthGuard } from 'src/app/domain/middleware/jwt.guard';
 import * as crypto from 'crypto';
 import {
   AuthenticatedRequest,
@@ -20,7 +20,7 @@ import {
 } from '../domain/middleware/role.guard';
 import { Roles } from '../domain/middleware/role.decorator';
 import { Role } from '../domain/enums/roles.enum';
-import { EmailVerifiedGuard } from 'src/app/auth/verified.guard';
+import { EmailVerifiedGuard } from 'src/app/domain/middleware/verified.guard';
 import { ConfigService } from '@nestjs/config';
 import { User, UserDocument } from '../user/user.schema';
 import { InjectModel } from '@nestjs/mongoose';
