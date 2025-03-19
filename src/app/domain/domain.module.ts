@@ -10,19 +10,14 @@ import { EmailModule } from '../email/email.module';
 import { PaystackModule } from '../paystack/paystack.module';
 import { AuthModule } from '../auth/auth.module';
 
-import { LoanReminderService } from './services/reminder.service';
-import { LoanCronService } from './services/loan-cron.service';
-import { AnalyticsService } from './services/analytics.service';
-
 import { User, UserSchema } from '../user/user.schema';
 import { Loan, LoanSchema } from '../loan/loan.schema';
-
-import { AnalyticsController } from './controllers/analytics.controller';
 
 import { EmailVerifiedGuard } from './middleware/verified.guard';
 import { JwtStrategy } from './middleware/jwt.strategy';
 import { JwtAuthGuard } from './middleware/jwt.guard';
 import { RolesGuard } from './middleware/role.guard';
+import { AnalyticsModule } from '../analytic/analytics.module';
 
 @Module({
   imports: [
@@ -43,9 +38,10 @@ import { RolesGuard } from './middleware/role.guard';
     EmailModule,
     PaystackModule,
     AuthModule,
+    AnalyticsModule,
   ],
 
-  controllers: [AnalyticsController],
+  controllers: [],
   providers: [
     {
       provide: APP_GUARD,
@@ -60,12 +56,9 @@ import { RolesGuard } from './middleware/role.guard';
       useExisting: EmailVerifiedGuard,
     },
     JwtStrategy,
-    LoanReminderService,
-    LoanCronService,
-    AnalyticsService,
     RolesGuard,
     EmailVerifiedGuard,
   ],
-  exports: [LoanReminderService, JwtStrategy, AnalyticsService],
+  exports: [],
 })
 export class DomainModule {}

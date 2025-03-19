@@ -1,10 +1,11 @@
 import { Controller, Get, UseGuards } from '@nestjs/common';
-import { AnalyticsService } from '../services/analytics.service';
-import { Role } from '../enums/roles.enum';
-import { Roles } from '../middleware/role.decorator';
-import { JwtAuthGuard } from 'src/app/domain/middleware/jwt.guard';
-import { RolesGuard } from '../middleware/role.guard';
+
 import { EmailVerifiedGuard } from 'src/app/domain/middleware/verified.guard';
+import { JwtAuthGuard } from '../domain/middleware/jwt.guard';
+import { RolesGuard } from '../domain/middleware/role.guard';
+import { AnalyticsService } from './analytics.service';
+import { Role } from '../domain/enums/roles.enum';
+import { Roles } from '../domain/middleware/role.decorator';
 
 @Controller('analytics')
 @UseGuards(JwtAuthGuard, RolesGuard, EmailVerifiedGuard)
