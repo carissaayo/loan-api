@@ -11,15 +11,18 @@ import {
   ForbiddenException,
   NotFoundException,
 } from '@nestjs/common';
-import { PaystackService } from '../services/paystack.service';
+import { PaystackService } from './paystack.service';
 import { JwtAuthGuard } from 'src/app/auth/jwt.guard';
 import * as crypto from 'crypto';
-import { AuthenticatedRequest, RolesGuard } from '../middleware/role.guard';
-import { Roles } from '../middleware/role.decorator';
-import { Role } from '../enums/roles.enum';
+import {
+  AuthenticatedRequest,
+  RolesGuard,
+} from '../domain/middleware/role.guard';
+import { Roles } from '../domain/middleware/role.decorator';
+import { Role } from '../domain/enums/roles.enum';
 import { EmailVerifiedGuard } from 'src/app/auth/verified.guard';
 import { ConfigService } from '@nestjs/config';
-import { User, UserDocument } from '../../user/user.schema';
+import { User, UserDocument } from '../user/user.schema';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import {
@@ -27,7 +30,7 @@ import {
   LoanDocument,
   LoanSchema,
   LoanStatus,
-} from '../../loan/loan.schema';
+} from '../loan/loan.schema';
 
 @Controller('paystack')
 @UseGuards(JwtAuthGuard, RolesGuard, EmailVerifiedGuard)
@@ -35,8 +38,6 @@ export class PaystackController {
   constructor(
     private readonly paystackService: PaystackService,
     private readonly configService: ConfigService,
-    @InjectModel(User.name) private userModel: Model<UserDocument>,
-    @InjectModel(Loan.name) private loanModel: Model<LoanDocument>,
   ) {}
 
   @Get('banks')

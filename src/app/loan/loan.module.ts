@@ -10,10 +10,12 @@ import { LoanController } from './loan.controller';
 import { LoanService } from './loan.service';
 import { Loan, LoanSchema } from './loan.schema';
 import { User, UserSchema } from '../user/user.schema';
-import { PaystackService } from '../domain/services/paystack.service';
-import { EmailService } from '../domain/services/email.service';
+import { PaystackService } from '../paystack/paystack.service';
+import { EmailService } from '../email/email.service';
 
 import { UserModule } from '../user/user.module';
+import { EmailModule } from '../email/email.module';
+import { PaystackModule } from '../paystack/paystack.module';
 
 @Module({
   imports: [
@@ -22,10 +24,12 @@ import { UserModule } from '../user/user.module';
       { name: User.name, schema: UserSchema },
     ]),
     UserModule,
+    EmailModule,
+    PaystackModule,
   ],
 
   controllers: [LoanController],
-  providers: [LoanService, PaystackService, EmailService],
+  providers: [LoanService],
   exports: [LoanService],
 })
 export class LoanModule {}

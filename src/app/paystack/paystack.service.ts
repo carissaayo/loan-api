@@ -6,9 +6,9 @@ import {
 } from '@nestjs/common';
 import axios from 'axios';
 import { ConfigService } from '@nestjs/config';
-import { AccountNumberDto } from '../../user/user.dto';
+import { AccountNumberDto } from '../user/user.dto';
 
-import { User, UserDocument } from '../../user/user.schema';
+import { User, UserDocument } from '../user/user.schema';
 import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import { UsersService } from 'src/app/user/user.service';

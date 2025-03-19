@@ -10,8 +10,8 @@ import { Model, Types } from 'mongoose';
 import { Loan, LoanDocument, LoanStatus, PaymentMethod } from './loan.schema';
 
 import { User, UserDocument } from '../user/user.schema';
-import { PaystackService } from '../domain/services/paystack.service';
-import { EmailService } from '../domain/services/email.service';
+import { PaystackService } from '../paystack/paystack.service';
+import { EmailService } from '../email/email.service';
 
 @Injectable()
 export class LoanService {

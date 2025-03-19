@@ -19,18 +19,19 @@ import { UsersController } from '../user/user.controller';
 import { LoanService } from '../loan/loan.service';
 import { LoanController } from '../loan/loan.controller';
 import { Loan, LoanSchema } from '../loan/loan.schema';
-import { PaystackService } from './services/paystack.service';
-import { PaystackController } from './controllers/paystack.controller';
+import { PaystackService } from '../paystack/paystack.service';
+import { PaystackController } from '../paystack/paystack.controller';
 import { EmailVerifiedGuard } from '../auth/verified.guard';
 import { LoanReminderService } from './services/reminder.service';
 import { LoanCronService } from './services/loan-cron.service';
-import { EmailService } from './services/email.service';
+import { EmailService } from '../email/email.service';
 import { ScheduleModule } from '@nestjs/schedule';
 import { AnalyticsService } from './services/analytics.service';
 import { AnalyticsController } from './controllers/analytics.controller';
 import { TermiiService } from './services/termii.service';
 import { LoanModule } from '../loan/loan.module';
-import { UsersService } from '../user/user.service';
+import { UserModule } from '../user/user.module';
+import { EmailModule } from '../email/email.module';
 
 export const ALL_SERVICES = fs
   .readdirSync(path.join(path.dirname(__filename), 'services'))
@@ -67,15 +68,11 @@ export const ALL_SERVICES = fs
     ]),
     ScheduleModule.forRoot(),
     LoanModule,
+    UserModule,
+    EmailModule,
   ],
 
-  controllers: [
-    AuthController,
-    UsersController,
-    // LoanController,
-    PaystackController,
-    AnalyticsController,
-  ],
+  controllers: [AuthController, PaystackController, AnalyticsController],
   providers: [
     {
       provide: APP_GUARD,
@@ -92,9 +89,7 @@ export const ALL_SERVICES = fs
     JwtAuthGuard,
     EmailVerifiedGuard,
     JwtStrategy,
-    UsersService,
     AuthService,
-    // LoanService,
     PaystackService,
     LoanReminderService,
     LoanCronService,
@@ -103,8 +98,6 @@ export const ALL_SERVICES = fs
     TermiiService,
   ],
   exports: [
-    UsersService,
-    // LoanService,
     PaystackService,
     LoanReminderService,
     LoanCronService,

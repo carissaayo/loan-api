@@ -6,7 +6,7 @@ import { Model } from 'mongoose';
 import { Loan, LoanDocument, LoanStatus } from '../../loan/loan.schema';
 import { User, UserDocument } from '../../user/user.schema';
 import { ConfigService } from '@nestjs/config';
-import { EmailService } from './email.service';
+import { EmailService } from '../../email/email.service';
 
 @Injectable()
 export class LoanReminderService {
