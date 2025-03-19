@@ -9,10 +9,11 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { LoanController } from './loan.controller';
 import { LoanService } from './loan.service';
 import { Loan, LoanSchema } from './loan.schema';
-import { User, UserSchema } from '../domain/schemas/user.schema';
+import { User, UserSchema } from '../user/user.schema';
 import { PaystackService } from '../domain/services/paystack.service';
 import { EmailService } from '../domain/services/email.service';
-import { UsersService } from '../domain/services/user.service';
+
+import { UserModule } from '../user/user.module';
 
 @Module({
   imports: [
@@ -20,10 +21,11 @@ import { UsersService } from '../domain/services/user.service';
       { name: Loan.name, schema: LoanSchema },
       { name: User.name, schema: UserSchema },
     ]),
+    UserModule,
   ],
 
   controllers: [LoanController],
-  providers: [LoanService, PaystackService, EmailService, UsersService],
+  providers: [LoanService, PaystackService, EmailService],
   exports: [LoanService],
 })
 export class LoanModule {}

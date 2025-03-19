@@ -2,7 +2,7 @@ import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { Role } from '../enums/roles.enum';
 import { Request } from 'express';
-import { User } from '../schemas/user.schema';
+import { User } from '../../user/user.schema';
 
 export interface AuthenticatedRequest extends Request {
   user: User;

@@ -7,10 +7,14 @@ import {
   UseGuards,
   Req,
 } from '@nestjs/common';
-import { UsersService } from '../services/user.service';
-import { AuthenticatedRequest, RolesGuard } from '../middleware/role.guard';
-import { Roles } from '../middleware/role.decorator';
-import { Role } from '../enums/roles.enum';
+
+import {
+  AuthenticatedRequest,
+  RolesGuard,
+} from '../domain/middleware/role.guard';
+import { Roles } from '../domain/middleware/role.decorator';
+import { Role } from '../domain/enums/roles.enum';
+import { UsersService } from './user.service';
 
 @Controller('users')
 @UseGuards(RolesGuard)

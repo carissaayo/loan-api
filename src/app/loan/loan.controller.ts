@@ -19,7 +19,6 @@ import { Roles } from '../domain/middleware/role.decorator';
 import { Role } from '../domain/enums/roles.enum';
 import { LoanService } from './loan.service';
 import { EmailVerifiedGuard } from 'src/app/auth/verified.guard';
-import { CreateLoanDto } from '../domain/dto/loan.dto';
 
 @Controller('loans')
 @UseGuards(RolesGuard, EmailVerifiedGuard)

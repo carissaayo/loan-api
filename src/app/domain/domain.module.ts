@@ -10,12 +10,12 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { AuthController } from './controllers/auth.controller';
 import { AuthService } from './services/auth.service';
 import { JwtStrategy } from '../auth/jwt.strategy';
-import { UsersService } from './services/user.service';
-import { User, UserSchema } from './schemas/user.schema';
+
+import { User, UserSchema } from '../user/user.schema';
 import { JwtAuthGuard } from '../auth/jwt.guard';
 
 import { RolesGuard } from './middleware/role.guard';
-import { UsersController } from './controllers/user.controller';
+import { UsersController } from '../user/user.controller';
 import { LoanService } from '../loan/loan.service';
 import { LoanController } from '../loan/loan.controller';
 import { Loan, LoanSchema } from '../loan/loan.schema';
@@ -30,6 +30,7 @@ import { AnalyticsService } from './services/analytics.service';
 import { AnalyticsController } from './controllers/analytics.controller';
 import { TermiiService } from './services/termii.service';
 import { LoanModule } from '../loan/loan.module';
+import { UsersService } from '../user/user.service';
 
 export const ALL_SERVICES = fs
   .readdirSync(path.join(path.dirname(__filename), 'services'))

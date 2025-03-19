@@ -1,16 +1,13 @@
 import {
   ForbiddenException,
-  HttpException,
-  HttpStatus,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import * as bcrypt from 'bcryptjs';
-import { User, UserDocument } from '../schemas/user.schema';
-import { Role } from '../enums/roles.enum';
-import { ConfigService } from '@nestjs/config';
+import { User, UserDocument } from './user.schema';
+import { Role } from '../domain/enums/roles.enum';
 
 @Injectable()
 export class UsersService {

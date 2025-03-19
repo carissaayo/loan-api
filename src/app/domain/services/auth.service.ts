@@ -11,7 +11,7 @@ import { Model } from 'mongoose';
 import * as bcrypt from 'bcryptjs';
 import { JwtService } from '@nestjs/jwt';
 
-import { User, UserDocument } from '../schemas/user.schema';
+import { User, UserDocument } from '../../user/user.schema';
 import { LoginDto } from '../dto/auth.dto';
 import { ConfigService } from '@nestjs/config';
 import { EmailService } from './email.service';

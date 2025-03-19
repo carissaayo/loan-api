@@ -6,11 +6,12 @@ import {
 } from '@nestjs/common';
 import axios from 'axios';
 import { ConfigService } from '@nestjs/config';
-import { AccountNumberDto } from '../dto/user.dto';
-import { UsersService } from './user.service';
-import { User, UserDocument } from '../schemas/user.schema';
+import { AccountNumberDto } from '../../user/user.dto';
+
+import { User, UserDocument } from '../../user/user.schema';
 import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
+import { UsersService } from 'src/app/user/user.service';
 
 @Injectable()
 export class PaystackService {
