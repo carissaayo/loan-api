@@ -11,12 +11,15 @@ import {
 } from '@nestjs/common';
 
 import { JwtAuthGuard } from 'src/app/auth/jwt.guard';
-import { AuthenticatedRequest, RolesGuard } from '../middleware/role.guard';
-import { Roles } from '../middleware/role.decorator';
-import { Role } from '../enums/roles.enum';
-import { LoanService } from '../services/loan.service';
+import {
+  AuthenticatedRequest,
+  RolesGuard,
+} from '../domain/middleware/role.guard';
+import { Roles } from '../domain/middleware/role.decorator';
+import { Role } from '../domain/enums/roles.enum';
+import { LoanService } from './loan.service';
 import { EmailVerifiedGuard } from 'src/app/auth/verified.guard';
-import { CreateLoanDto } from '../dto/loan.dto';
+import { CreateLoanDto } from '../domain/dto/loan.dto';
 
 @Controller('loans')
 @UseGuards(RolesGuard, EmailVerifiedGuard)

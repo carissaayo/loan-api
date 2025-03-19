@@ -13,11 +13,11 @@ import { Roles } from '../middleware/role.decorator';
 import { Role } from '../enums/roles.enum';
 
 @Controller('users')
+@UseGuards(RolesGuard)
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Patch(':id/role')
-  @UseGuards(RolesGuard)
   @Roles(Role.ADMIN)
   async changeUserRole(
     @Req() req: AuthenticatedRequest,

@@ -1,5 +1,5 @@
 import { IsDateString, IsEnum, IsNotEmpty, IsNumber } from 'class-validator';
-import { LoanStatus } from '../schemas/loan.schema';
+import { LoanStatus } from '../../loan/loan.schema';
 
 export class CreateLoanDto {
   @IsNotEmpty()

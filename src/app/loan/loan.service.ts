@@ -7,16 +7,11 @@ import {
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
-import {
-  Loan,
-  LoanDocument,
-  LoanStatus,
-  PaymentMethod,
-} from '../schemas/loan.schema';
+import { Loan, LoanDocument, LoanStatus, PaymentMethod } from './loan.schema';
 
-import { User, UserDocument } from '../schemas/user.schema';
-import { PaystackService } from './paystack.service';
-import { EmailService } from './email.service';
+import { User, UserDocument } from '../domain/schemas/user.schema';
+import { PaystackService } from '../domain/services/paystack.service';
+import { EmailService } from '../domain/services/email.service';
 
 @Injectable()
 export class LoanService {

@@ -27,7 +27,7 @@ import {
   LoanDocument,
   LoanSchema,
   LoanStatus,
-} from '../schemas/loan.schema';
+} from '../../loan/loan.schema';
 
 @Controller('paystack')
 @UseGuards(JwtAuthGuard, RolesGuard, EmailVerifiedGuard)

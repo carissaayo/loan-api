@@ -25,11 +25,27 @@ export class TermiiService {
       throw new Error('Failed SenderId request');
     }
   }
+
+  async fetchSenderId() {
+    try {
+      const url = `${this.configService.get<string>('TERMII_BASE_URL')}/api/sender-id/?api_key=${this.configService.get<string>('TERMII_API_KEY')}`;
+
+      const response = await axios.get(url);
+      return response.data;
+    } catch (error) {
+      console.error(
+        'Termii SenderId fetching failed:',
+        error.response?.data || error.message,
+      );
+      throw new Error('Failed fetching SenderId ');
+    }
+  }
   async sendVerificationCode(phoneNumber: string, code: string): Promise<any> {
     const url = `${this.configService.get<string>('TERMII_BASE_URL')}/api/sms/send`;
     const payload = {
       to: phoneNumber,
-      from: this.configService.get<string>('TERMII_SENDER_ID'),
+      from: 'JustADev',
+      //   this.configService.get<string>('TERMII_SENDER_ID'),
       sms: `Your verification code is: ${code}`,
       type: 'plain',
       channel: 'generic',

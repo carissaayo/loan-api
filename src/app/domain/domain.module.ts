@@ -16,9 +16,9 @@ import { JwtAuthGuard } from '../auth/jwt.guard';
 
 import { RolesGuard } from './middleware/role.guard';
 import { UsersController } from './controllers/user.controller';
-import { LoanService } from './services/loan.service';
-import { LoanController } from './controllers/loan.controller';
-import { Loan, LoanSchema } from './schemas/loan.schema';
+import { LoanService } from '../loan/loan.service';
+import { LoanController } from '../loan/loan.controller';
+import { Loan, LoanSchema } from '../loan/loan.schema';
 import { PaystackService } from './services/paystack.service';
 import { PaystackController } from './controllers/paystack.controller';
 import { EmailVerifiedGuard } from '../auth/verified.guard';
@@ -29,6 +29,7 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { AnalyticsService } from './services/analytics.service';
 import { AnalyticsController } from './controllers/analytics.controller';
 import { TermiiService } from './services/termii.service';
+import { LoanModule } from '../loan/loan.module';
 
 export const ALL_SERVICES = fs
   .readdirSync(path.join(path.dirname(__filename), 'services'))
@@ -64,12 +65,13 @@ export const ALL_SERVICES = fs
       { name: Loan.name, schema: LoanSchema },
     ]),
     ScheduleModule.forRoot(),
+    LoanModule,
   ],
 
   controllers: [
     AuthController,
     UsersController,
-    LoanController,
+    // LoanController,
     PaystackController,
     AnalyticsController,
   ],
@@ -91,7 +93,7 @@ export const ALL_SERVICES = fs
     JwtStrategy,
     UsersService,
     AuthService,
-    LoanService,
+    // LoanService,
     PaystackService,
     LoanReminderService,
     LoanCronService,
@@ -101,7 +103,7 @@ export const ALL_SERVICES = fs
   ],
   exports: [
     UsersService,
-    LoanService,
+    // LoanService,
     PaystackService,
     LoanReminderService,
     LoanCronService,

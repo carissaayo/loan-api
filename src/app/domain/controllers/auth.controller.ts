@@ -68,6 +68,29 @@ export class AuthController {
     const response = await this.termiiService.requestForSenderId();
     return { message: 'request sent', response };
   }
+
+  @Get('sender-id')
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN)
+  async fetchSenderId() {
+    const response = await this.termiiService.fetchSenderId();
+    return { message: 'sender id fetched', response };
+  }
+
+  @Post('verify-phone')
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN)
+  async verifyPhone(
+    @Body('phoneNumber') phoneNumber: string,
+    @Body('code') code: string,
+  ) {
+    const response = await this.termiiService.sendVerificationCode(
+      phoneNumber,
+      code,
+    );
+    return { message: 'request sent', response };
+  }
+
   @Public()
   @Get('verify-email')
   async verifyEmail(@Query('token') token: string) {
