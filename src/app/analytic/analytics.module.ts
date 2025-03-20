@@ -9,6 +9,7 @@ import { LoanModule } from '../loan/loan.module';
 import { UserModule } from '../user/user.module';
 import { AnalyticsController } from './analytics.controller';
 import { AnalyticsService } from './analytics.service';
+import { RedisService } from '../domain/services/redis.service';
 
 @Module({
   imports: [
@@ -29,7 +30,7 @@ import { AnalyticsService } from './analytics.service';
   ],
 
   controllers: [AnalyticsController],
-  providers: [AnalyticsService],
+  providers: [AnalyticsService, RedisService],
   exports: [AnalyticsService],
 })
 export class AnalyticsModule {}
