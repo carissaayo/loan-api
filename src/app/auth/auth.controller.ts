@@ -14,7 +14,7 @@ import { AuthService } from './auth.service';
 import { LoginDto } from '../domain/dto/auth.dto';
 
 import { Public } from '../domain/middleware/public.decorator';
-import { TermiiService } from '../domain/services/termii.service';
+// import { TermiiService } from '../domain/services/termii.service';
 import { RolesGuard } from '../domain/middleware/role.guard';
 import { Role } from '../domain/enums/roles.enum';
 import { Roles } from '../domain/middleware/role.decorator';
@@ -29,7 +29,7 @@ import { Roles } from '../domain/middleware/role.decorator';
 export class AuthController {
   constructor(
     private readonly authService: AuthService,
-    private readonly termiiService: TermiiService,
+    // private readonly termiiService: TermiiService,
   ) {}
 
   @Public()
@@ -60,35 +60,35 @@ export class AuthController {
     if (!token) throw new UnauthorizedException('Invalid credentials');
     return token;
   }
-  @Post('sender-id/request')
-  @UseGuards(RolesGuard)
-  @Roles(Role.ADMIN)
-  async requestSenderId() {
-    const response = await this.termiiService.requestForSenderId();
-    return { message: 'request sent', response };
-  }
+  // @Post('sender-id/request')
+  // @UseGuards(RolesGuard)
+  // @Roles(Role.ADMIN)
+  // async requestSenderId() {
+  //   const response = await this.termiiService.requestForSenderId();
+  //   return { message: 'request sent', response };
+  // }
 
-  @Get('sender-id')
-  @UseGuards(RolesGuard)
-  @Roles(Role.ADMIN)
-  async fetchSenderId() {
-    const response = await this.termiiService.fetchSenderId();
-    return { message: 'sender id fetched', response };
-  }
+  // @Get('sender-id')
+  // @UseGuards(RolesGuard)
+  // @Roles(Role.ADMIN)
+  // async fetchSenderId() {
+  //   const response = await this.termiiService.fetchSenderId();
+  //   return { message: 'sender id fetched', response };
+  // }
 
-  @Post('verify-phone')
-  @UseGuards(RolesGuard)
-  @Roles(Role.ADMIN)
-  async verifyPhone(
-    @Body('phoneNumber') phoneNumber: string,
-    @Body('code') code: string,
-  ) {
-    const response = await this.termiiService.sendVerificationCode(
-      phoneNumber,
-      code,
-    );
-    return { message: 'request sent', response };
-  }
+  // @Post('verify-phone')
+  // @UseGuards(RolesGuard)
+  // @Roles(Role.ADMIN)
+  // async verifyPhone(
+  //   @Body('phoneNumber') phoneNumber: string,
+  //   @Body('code') code: string,
+  // ) {
+  //   const response = await this.termiiService.sendVerificationCode(
+  //     phoneNumber,
+  //     code,
+  //   );
+  //   return { message: 'request sent', response };
+  // }
 
   @Public()
   @Get('verify-email')

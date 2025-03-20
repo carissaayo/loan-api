@@ -18,6 +18,7 @@ import { JwtStrategy } from './middleware/jwt.strategy';
 import { JwtAuthGuard } from './middleware/jwt.guard';
 import { RolesGuard } from './middleware/role.guard';
 import { AnalyticsModule } from '../analytic/analytics.module';
+import config from '../config/config';
 
 @Module({
   imports: [
@@ -25,7 +26,7 @@ import { AnalyticsModule } from '../analytic/analytics.module';
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: async (configService: ConfigService) => ({
-        uri: configService.get<string>('MONGO_URI'),
+        uri: configService.get<string>('mongoUri'),
       }),
     }),
     MongooseModule.forFeature([
