@@ -12,6 +12,7 @@ import { Loan, LoanDocument, LoanStatus, PaymentMethod } from './loan.schema';
 import { User, UserDocument } from '../user/user.schema';
 import { PaystackService } from '../paystack/paystack.service';
 import { EmailService } from '../email/email.service';
+import { UsersService } from '../user/user.service';
 
 @Injectable()
 export class LoanService {
@@ -20,6 +21,7 @@ export class LoanService {
     @InjectModel(User.name) private userModel: Model<UserDocument>,
     private paystackService: PaystackService,
     private emailService: EmailService,
+    private usersService: UsersService,
   ) {}
 
   async requestLoan(
@@ -98,6 +100,10 @@ export class LoanService {
   async reviewLoan(loanId: string, req: any): Promise<any> {
     const loan = await this.loanModel.findById(loanId);
     if (!loan) throw new NotFoundException('Loan not found');
+    const userId = loan.userId.toString();
+    const user = await this.usersService.getUserById(userId);
+
+    if (!user) throw new NotFoundException('User not found');
     if (loan.status !== LoanStatus.PENDING) {
       throw new BadRequestException('Loan cannot be reviewed at this stage');
     }
@@ -112,7 +118,8 @@ export class LoanService {
   async approveLoan(req: any, loanId: string): Promise<any> {
     const loan = await this.loanModel.findById(loanId);
     if (!loan) throw new NotFoundException('Loan not found');
-    const user = await this.userModel.findById(loan.userId);
+    const userId = loan.userId.toString();
+    const user = await this.usersService.getUserById(userId);
     if (!user) throw new NotFoundException('User not found');
     if (
       loan.status !== LoanStatus.IN_REVIEW
@@ -141,7 +148,8 @@ export class LoanService {
   ): Promise<any> {
     const loan = await this.loanModel.findById(loanId);
     if (!loan) throw new NotFoundException('Loan not found');
-    const user = await this.userModel.findById(loan.userId);
+    const userId = loan.userId.toString();
+    const user = await this.usersService.getUserById(userId);
     if (!user) throw new NotFoundException('User not found');
     if (
       loan.status !== LoanStatus.IN_REVIEW

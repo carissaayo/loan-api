@@ -7,6 +7,8 @@ import { LoanCronService } from '../domain/services/loan-cron.service';
 
 import { User, UserSchema } from '../user/user.schema';
 import { Loan, LoanSchema } from '../loan/loan.schema';
+import { RedisService } from '../domain/services/redis.service';
+import { UserModule } from '../user/user.module';
 
 @Module({
   imports: [
@@ -14,10 +16,11 @@ import { Loan, LoanSchema } from '../loan/loan.schema';
       { name: User.name, schema: UserSchema },
       { name: Loan.name, schema: LoanSchema },
     ]),
+    UserModule,
   ],
 
   controllers: [],
-  providers: [EmailService, LoanReminderService, LoanCronService],
+  providers: [EmailService, LoanReminderService, LoanCronService, RedisService],
   exports: [EmailService, LoanReminderService, LoanCronService],
 })
 export class EmailModule {}

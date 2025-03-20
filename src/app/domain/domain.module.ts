@@ -18,7 +18,7 @@ import { JwtStrategy } from './middleware/jwt.strategy';
 import { JwtAuthGuard } from './middleware/jwt.guard';
 import { RolesGuard } from './middleware/role.guard';
 import { AnalyticsModule } from '../analytic/analytics.module';
-import config from '../config/config';
+import { RedisService } from './services/redis.service';
 
 @Module({
   imports: [
@@ -59,7 +59,8 @@ import config from '../config/config';
     JwtStrategy,
     RolesGuard,
     EmailVerifiedGuard,
+    RedisService,
   ],
-  exports: [],
+  exports: [RedisService],
 })
 export class DomainModule {}

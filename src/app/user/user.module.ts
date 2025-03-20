@@ -5,6 +5,7 @@ import { User, UserSchema } from './user.schema';
 import { UsersController } from './user.controller';
 
 import { UsersService } from './user.service';
+import { RedisService } from '../domain/services/redis.service';
 
 @Module({
   imports: [
@@ -12,7 +13,7 @@ import { UsersService } from './user.service';
   ],
 
   controllers: [UsersController],
-  providers: [UsersService],
+  providers: [UsersService, RedisService],
   exports: [UsersService],
 })
 export class UserModule {}

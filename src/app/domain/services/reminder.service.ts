@@ -7,6 +7,7 @@ import { Loan, LoanDocument, LoanStatus } from '../../loan/loan.schema';
 import { User, UserDocument } from '../../user/user.schema';
 import { ConfigService } from '@nestjs/config';
 import { EmailService } from '../../email/email.service';
+import { UsersService } from 'src/app/user/user.service';
 
 @Injectable()
 export class LoanReminderService {
@@ -18,6 +19,7 @@ export class LoanReminderService {
     @InjectModel(User.name) private readonly userModel: Model<UserDocument>,
     private readonly configService: ConfigService,
     private emailService: EmailService,
+    private usersService: UsersService,
   ) {
     this.queue = new Queue('loan-reminders', {
       connection: {
@@ -92,7 +94,6 @@ export class LoanReminderService {
           );
           await user.save();
           await loan.save();
-          console.log(``);
 
           this.logger.log(`Penalty applied to user ${user._id}.`);
         }
@@ -112,7 +113,8 @@ export class LoanReminderService {
           const loan = await this.loanModel.findById(loanId);
           if (!loan) return;
 
-          const user = await this.userModel.findById(loan.userId);
+          const userId = loan.userId.toString();
+          const user = await this.usersService.getUserById(userId);
           if (!user) return;
 
           const message = `Dear ${user.name}, your loan payment is due soon on ${loan.dueDate.toDateString()}. Please make a payment to avoid penalties.`;
