@@ -3,11 +3,12 @@ import { Injectable, Logger } from '@nestjs/common';
 import { Queue, Worker } from 'bullmq';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { Loan, LoanDocument, LoanStatus } from '../../loan/loan.schema';
-import { User, UserDocument } from '../../user/user.schema';
+import { Loan, LoanDocument, LoanStatus } from '../loan/loan.schema';
+import { User, UserDocument } from '../user/user.schema';
 import { ConfigService } from '@nestjs/config';
-import { EmailService } from '../../email/email.service';
+import { EmailService } from './email.service';
 import { UsersService } from 'src/app/user/user.service';
+import { AnalyticsService } from 'src/app/analytic/analytics.service';
 
 @Injectable()
 export class LoanReminderService {
@@ -20,6 +21,7 @@ export class LoanReminderService {
     private readonly configService: ConfigService,
     private emailService: EmailService,
     private usersService: UsersService,
+    private analyticsService: AnalyticsService,
   ) {
     this.queue = new Queue('loan-reminders', {
       connection: {
@@ -95,6 +97,8 @@ export class LoanReminderService {
           await user.save();
           await loan.save();
 
+          // clear analytic cache
+          await this.analyticsService.clearAnalyticsCache();
           this.logger.log(`Penalty applied to user ${user._id}.`);
         }
       },

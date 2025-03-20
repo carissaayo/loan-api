@@ -2,13 +2,14 @@ import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 
 import { EmailService } from './email.service';
-import { LoanReminderService } from '../domain/services/reminder.service';
-import { LoanCronService } from '../domain/services/loan-cron.service';
+import { LoanReminderService } from './reminder.service';
 
 import { User, UserSchema } from '../user/user.schema';
 import { Loan, LoanSchema } from '../loan/loan.schema';
 import { RedisService } from '../domain/services/redis.service';
 import { UserModule } from '../user/user.module';
+import { AnalyticsService } from '../analytic/analytics.service';
+import { LoanCronService } from './loan-cron.service';
 
 @Module({
   imports: [
@@ -20,7 +21,13 @@ import { UserModule } from '../user/user.module';
   ],
 
   controllers: [],
-  providers: [EmailService, LoanReminderService, LoanCronService, RedisService],
+  providers: [
+    EmailService,
+    LoanReminderService,
+    LoanCronService,
+    RedisService,
+    AnalyticsService,
+  ],
   exports: [EmailService, LoanReminderService, LoanCronService],
 })
 export class EmailModule {}

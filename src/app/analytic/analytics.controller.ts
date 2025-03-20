@@ -1,4 +1,4 @@
-import { Controller, Get, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, UseGuards } from '@nestjs/common';
 
 import { EmailVerifiedGuard } from 'src/app/domain/middleware/verified.guard';
 import { JwtAuthGuard } from '../domain/middleware/jwt.guard';
@@ -16,5 +16,10 @@ export class AnalyticsController {
   @Roles(Role.FINANCE_ADMIN, Role.ADMIN)
   async getReport() {
     return await this.analyticsService.generateReport();
+  }
+  @Post('/clear-cache')
+  @Roles(Role.FINANCE_ADMIN, Role.ADMIN)
+  async clearAnalyticsCache() {
+    return this.analyticsService.clearAnalyticsCache();
   }
 }

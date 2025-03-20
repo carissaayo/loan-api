@@ -106,9 +106,14 @@ export class AnalyticsService {
   }
 
   async clearAnalyticsCache() {
-    await this.redisService.del('analytics:totalLoansDisbursed');
-    await this.redisService.del('analytics:totalOutstandingBalances');
-    await this.redisService.del('analytics:usersWhoMissedPayments');
-    await this.redisService.del('analytics:report');
+    try {
+      await this.redisService.del('analytics:totalLoansDisbursed');
+      await this.redisService.del('analytics:totalOutstandingBalances');
+      await this.redisService.del('analytics:usersWhoMissedPayments');
+      await this.redisService.del('analytics:report');
+      return 'Analytics cache has been cleared';
+    } catch (err) {
+      console.log(err);
+    }
   }
 }

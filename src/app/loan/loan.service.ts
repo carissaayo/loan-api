@@ -13,6 +13,7 @@ import { User, UserDocument } from '../user/user.schema';
 import { PaystackService } from '../paystack/paystack.service';
 import { EmailService } from '../email/email.service';
 import { UsersService } from '../user/user.service';
+import { AnalyticsService } from '../analytic/analytics.service';
 
 @Injectable()
 export class LoanService {
@@ -22,6 +23,7 @@ export class LoanService {
     private paystackService: PaystackService,
     private emailService: EmailService,
     private usersService: UsersService,
+    private analyticsService: AnalyticsService,
   ) {}
 
   async requestLoan(
@@ -216,6 +218,9 @@ export class LoanService {
     const message = `I'm happy to inform you that your account has been credited. Try to make payment before the due date, to avoid further penalties`;
 
     await this.emailService.sendEmail(user.email, title, message);
+
+    // clear analytic cache
+    await this.analyticsService.clearAnalyticsCache();
     return { message: 'Funds has been disbursed for this loan', loan };
   }
 
@@ -239,7 +244,7 @@ export class LoanService {
       loan.totalAmount !== amount
     ) {
       throw new BadRequestException(
-        'The amount is not up to the amount you ought to pay',
+        'The amount is not the amount you ought to pay',
       );
     }
 
@@ -250,7 +255,7 @@ export class LoanService {
         loan.remainingBalance !== amount)
     ) {
       throw new BadRequestException(
-        'The amount is not  the amount you ought to pay',
+        'The amount is not the amount you ought to pay',
       );
     }
 
@@ -351,6 +356,9 @@ export class LoanService {
     }
     await user.save();
     await loan.save();
+
+    // clear analytic cache
+    await this.analyticsService.clearAnalyticsCache();
 
     return {
       message: 'Payment has been confirmed',

@@ -10,7 +10,6 @@ import {
   Patch,
 } from '@nestjs/common';
 
-import { JwtAuthGuard } from 'src/app/domain/middleware/jwt.guard';
 import {
   AuthenticatedRequest,
   RolesGuard,
